@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Worker {
+  id           Int           @id @default(autoincrement())
+  name         String
+  role         String
+  specialties  String
+  available    Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Client {
+  id           Int           @id @default(autoincrement())
+  name         String
+  phone        String
+  notes        String?
+  tag          String        @default("Nueva")
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+}
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  name         String
+  detail       String?
+  price        Int
+  duration     Int
+  category     String
+  active       Boolean       @default(true)
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  timeSlot  String
+  status    String   @default("pending")
+
+  clientId  Int
+  client    Client   @relation(fields: [clientId], references: [id])
+
+  serviceId Int
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  workerId  Int?
+  worker    Worker?  @relation(fields: [workerId], references: [id])
+
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Discount {
+  id         Int      @id @default(autoincrement())
+  label      String
+  type       String
+  value      Int
+  categories String   @default("")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}

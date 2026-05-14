@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --kr-rose:       #c49a8a;
+    --kr-rose-light: #f5e8e4;
+    --kr-rose-mid:   #e8cfc8;
+    --kr-rose-dark:  #8b5e52;
+    --kr-gold:       #b8906a;
+    --kr-gold-light: #f7f0ea;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e8cfc8;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-kr-rose text-white text-sm font-medium px-4 py-2 rounded-lg
+           flex items-center gap-2 hover:bg-kr-rose-dark transition-colors cursor-pointer
+           border-0 outline-none;
+  }
+
+  .btn-outline {
+    @apply bg-transparent text-gray-700 text-sm px-4 py-2 rounded-lg
+           flex items-center gap-2 border border-gray-200 hover:bg-gray-50
+           transition-colors cursor-pointer outline-none;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-gray-500 text-sm px-3 py-1.5 rounded-md
+           hover:bg-gray-100 transition-colors cursor-pointer border-0 outline-none;
+  }
+
+  .card {
+    @apply bg-white border border-gray-100 rounded-xl p-4 shadow-sm;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-confirmed {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .badge-pending {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  .badge-cancelled {
+    @apply bg-red-50 text-red-700;
+  }
+
+  .badge-rose {
+    @apply bg-kr-rose-light text-kr-rose-dark;
+  }
+
+  .badge-blue {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
+           bg-white text-gray-900 placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-kr-rose focus:border-transparent
+           transition-all;
+  }
+
+  .form-select {
+    @apply w-full px-3 py-2 text-sm border border-gray-200 rounded-lg
+           bg-white text-gray-900
+           focus:outline-none focus:ring-2 focus:ring-kr-rose focus:border-transparent
+           transition-all;
+  }
+
+  .form-label {
+    @apply block text-xs font-medium text-gray-500 mb-1.5;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-2.5 px-3 py-2 text-sm text-gray-500
+           rounded-lg cursor-pointer transition-all hover:bg-white hover:text-gray-900;
+  }
+
+  .nav-item.active {
+    @apply bg-white text-kr-rose-dark font-medium shadow-sm;
+  }
+
+  .toggle {
+    @apply relative inline-flex w-10 h-5 rounded-full cursor-pointer transition-colors;
+  }
+
+  .toggle-on {
+    @apply bg-emerald-500;
+  }
+
+  .toggle-off {
+    @apply bg-gray-200;
+  }
+
+  .toggle-thumb {
+    @apply absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all;
+  }
+}
