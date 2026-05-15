@@ -5,31 +5,31 @@ const NAV = [
   {
     section: 'Salón',
     items: [
-      { to: '/',           icon: 'ti-layout-dashboard', label: 'Resumen' },
-      { to: '/calendar',   icon: 'ti-calendar',         label: 'Calendario' },
-      { to: '/booking',    icon: 'ti-plus',             label: 'Nueva cita' },
-      { to: '/services',   icon: 'ti-list',             label: 'Servicios' },
-      { to: '/discounts',  icon: 'ti-tag',              label: 'Descuentos' },
+      { to: '/admin',            icon: 'ti-layout-dashboard', label: 'Resumen' },
+      { to: '/admin/calendar',   icon: 'ti-calendar',         label: 'Calendario' },
+      { to: '/admin/booking',    icon: 'ti-plus',             label: 'Nueva cita' },
+      { to: '/admin/services',   icon: 'ti-list',             label: 'Servicios' },
+      { to: '/admin/discounts',  icon: 'ti-tag',              label: 'Descuentos' },
     ]
   },
   {
     section: 'Clientes',
     items: [
-      { to: '/clients',    icon: 'ti-users',            label: 'Historial', badge: '24' },
-      { to: '/portal',     icon: 'ti-device-mobile',    label: 'Portal cliente' },
+      { to: '/admin/clients',    icon: 'ti-users',            label: 'Historial', badge: '24' },
+      { to: '/admin/portal',     icon: 'ti-device-mobile',    label: 'Portal cliente' },
     ]
   },
   {
     section: 'Automatización',
     items: [
-      { to: '/reminders',  icon: 'ti-bell',             label: 'Recordatorios' },
-      { to: '/whatsapp',   icon: 'ti-brand-whatsapp',   label: 'WhatsApp', badgeGreen: true },
+      { to: '/admin/reminders',  icon: 'ti-bell',             label: 'Recordatorios' },
+      { to: '/admin/whatsapp',   icon: 'ti-brand-whatsapp',   label: 'WhatsApp', badgeGreen: true },
     ]
   },
   {
     section: 'Info',
     items: [
-      { to: '/info',       icon: 'ti-info-circle',      label: 'Info del salón' },
+      { to: '/admin/info',       icon: 'ti-info-circle',      label: 'Info del salón' },
     ]
   }
 ]
@@ -62,7 +62,7 @@ export default function Sidebar() {
                 <NavLink
                   key={to}
                   to={to}
-                  end={to === '/'}
+                  end={to === '/admin'}
                   className={({ isActive }) =>
                     `nav-item ${isActive ? 'active' : ''}`
                   }
