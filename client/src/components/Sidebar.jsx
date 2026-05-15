@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { SALON_INFO } from '../../data/mockData'
+import { SALON_INFO } from '../data/mockData'
 
 const NAV = [
   {
