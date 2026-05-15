@@ -38,5 +38,15 @@ app.use((err, _req, res, _next) => {
   console.error(err)
   res.status(500).json({ error: 'Error interno del servidor' })
 })
+// Ruta temporal para ejecutar seed — ELIMINAR después de usar
+app.get('/run-seed', async (_req, res) => {
+  try {
+    const { execSync } = require('child_process')
+    execSync('node prisma/seed.js', { cwd: process.cwd() })
+    res.json({ ok: true, message: 'Seed ejecutado correctamente' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 
 module.exports = app
