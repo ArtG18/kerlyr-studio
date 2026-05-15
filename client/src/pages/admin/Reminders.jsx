@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Toggle, TopBar } from '../components/UI'
+import { Toggle, TopBar } from '../../components/UI'
 
 const DEFAULT_REMINDERS = [
   { id: 1, icon: 'ti-brand-whatsapp', iconColor: 'text-emerald-600', title: 'Confirmación automática al agendar', desc: '"¡Tu cita en Kerlyr Studio está confirmada!"', on: true },

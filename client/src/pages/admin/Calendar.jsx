@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import { TopBar } from '../components/UI'
+import { useApp } from '../../context/AppContext'
+import { TopBar } from '../../components/UI'
 
 const DAYS_WITH_APPTS = new Set([2,3,5,6,7,9,10,12,13,15,16,17,19,21,22,24,26,27,29,30,31])
 const WEEK_DAYS = ['L','M','X','J','V','S','D']

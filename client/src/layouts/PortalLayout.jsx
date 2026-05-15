@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { SALON_INFO } from '../data/mockData'
+import { SALON_INFO } from '../../data/mockData'
 
 export default function PortalLayout() {
   return (

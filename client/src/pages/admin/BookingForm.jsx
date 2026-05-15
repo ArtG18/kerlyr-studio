@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import { SERVICES, CATEGORY_LABELS, SALON_INFO, WORKERS, getAvailableSlots } from '../data/mockData'
-import { PriceDisplay, TopBar, Avatar } from '../components/UI'
+import { useApp } from '../../context/AppContext'
+import { SERVICES, CATEGORY_LABELS, SALON_INFO, WORKERS, getAvailableSlots } from '../../data/mockData'
+import { PriceDisplay, TopBar, Avatar } from '../../components/UI'
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS)
 

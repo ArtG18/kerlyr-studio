@@ -1,5 +1,5 @@
-import { SALON_INFO } from '../data/mockData'
-import { TopBar } from '../components/UI'
+import { SALON_INFO } from '../../data/mockData'
+import { TopBar } from '../../components/UI'
 
 export default function SalonInfo() {
   return (

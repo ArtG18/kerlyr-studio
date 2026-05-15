@@ -1,6 +1,6 @@
-import { SERVICES, CATEGORY_LABELS } from '../data/mockData'
-import { useApp } from '../context/AppContext'
-import { PriceDisplay, TopBar } from '../components/UI'
+import { SERVICES, CATEGORY_LABELS } from '../../data/mockData'
+import { useApp } from '../../context/AppContext'
+import { PriceDisplay, TopBar } from '../../components/UI'
 
 const ICONS = {
   manicure:    'ti-sparkles',

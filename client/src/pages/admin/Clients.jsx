@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import { Avatar, Badge, TopBar, EmptyState } from '../components/UI'
+import { useApp } from '../../context/AppContext'
+import { Avatar, Badge, TopBar, EmptyState } from '../../components/UI'
 
 const TAG_VARIANT = { VIP: 'vip', Frecuente: 'frecuente', Regular: 'regular', Nueva: 'nueva' }
 const STARS = n => '★'.repeat(n) + '☆'.repeat(5 - n)

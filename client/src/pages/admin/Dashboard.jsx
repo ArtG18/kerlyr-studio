@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
-import { StatCard, Avatar, Badge, TopBar } from '../components/UI'
+import { useApp } from '../../context/AppContext'
+import { StatCard, Avatar, Badge, TopBar } from '../../components/UI'
 
 const STATUS_MAP = {
   confirmed: { label: 'Confirmada', variant: 'confirmed' },

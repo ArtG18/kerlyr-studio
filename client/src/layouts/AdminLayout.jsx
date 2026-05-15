@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import Sidebar from '../components/Sidebar'
+import { useAuth } from '../../context/AuthContext'
+import Sidebar from '../../components/Sidebar'
 
 export default function AdminLayout() {
   const { isAuthenticated, loading, logout, user } = useAuth()

@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { SERVICES, SALON_INFO } from '../data/mockData'
-import { TopBar } from '../components/UI'
-import { useApp } from '../context/AppContext'
+import { SERVICES, SALON_INFO } from '../../data/mockData'
+import { TopBar } from '../../components/UI'
+import { useApp } from '../../context/AppContext'
 
 const PORTAL_SERVICES = SERVICES.slice(0, 6)
 const SLOTS = [

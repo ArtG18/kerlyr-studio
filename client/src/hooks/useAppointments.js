@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { appointmentsApi } from '../services/api'
+import { appointmentsApi } from '../../services/api'
 
 /**
  * Hook para gestionar citas.

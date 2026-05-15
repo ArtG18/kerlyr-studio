@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { discountsApi } from '../services/api'
+import { discountsApi } from '../../services/api'
 
 export function useDiscount() {
   const [discount, setDiscount] = useState(null)

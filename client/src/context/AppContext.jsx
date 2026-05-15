@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react'
-import { SERVICES, CLIENTS, TODAY_APPOINTMENTS } from '../data/mockData'
+import { SERVICES, CLIENTS, TODAY_APPOINTMENTS } from '../../data/mockData'
 
 const AppContext = createContext(null)
 

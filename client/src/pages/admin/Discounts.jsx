@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import { CATEGORY_LABELS, SERVICES } from '../data/mockData'
-import { TopBar, Toggle, PriceDisplay } from '../components/UI'
+import { useApp } from '../../context/AppContext'
+import { CATEGORY_LABELS, SERVICES } from '../../data/mockData'
+import { TopBar, Toggle, PriceDisplay } from '../../components/UI'
 
 const QUICK_DISCOUNTS = [
   { label: '10% OFF',           type: 'percent', value: 10 },
