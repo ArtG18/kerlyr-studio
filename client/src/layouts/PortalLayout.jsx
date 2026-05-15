@@ -1,19 +1,20 @@
-import { Outlet } from 'react-router-dom'
-import { SALON_INFO } from '../../data/mockData'
+import { Outlet, useNavigate } from 'react-router-dom'
+import { SALON_INFO } from '../data/mockData'
 
 export default function PortalLayout() {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <span className="font-display italic text-2xl text-kr-rose">KR</span>
-            <div>
+            <div className="text-left">
               <p className="text-sm font-medium text-gray-800">{SALON_INFO.name}</p>
               <p className="text-[10px] text-gray-400 tracking-widest uppercase">{SALON_INFO.tagline}</p>
             </div>
-          </div>
+          </button>
           <div className="flex items-center gap-3">
             <a
               href={SALON_INFO.instagramUrl}
