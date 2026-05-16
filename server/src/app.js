@@ -32,19 +32,7 @@ app.use('/workers',             workerRoutes)
 
 app.get('/', (_req, res) => res.json({ status: 'ok', app: 'Kerlyr Studio API' }))
 
-// Ruta temporal para ejecutar seed — ELIMINAR después de usar
-app.get('/run-seed', async (_req, res) => {
-  try {
-    const { execSync } = require('child_process')
-    execSync('npx prisma migrate deploy', { cwd: process.cwd() })
-    execSync('node prisma/seed.js', { cwd: process.cwd() })
-    res.json({ ok: true, message: 'Migración y seed ejecutados correctamente' })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
 
-// 404 — debe ir al final
 app.use((_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }))
 
 app.use((err, _req, res, _next) => {
