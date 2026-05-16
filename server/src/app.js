@@ -36,8 +36,9 @@ app.get('/', (_req, res) => res.json({ status: 'ok', app: 'Kerlyr Studio API' })
 app.get('/run-seed', async (_req, res) => {
   try {
     const { execSync } = require('child_process')
+    execSync('npx prisma migrate deploy', { cwd: process.cwd() })
     execSync('node prisma/seed.js', { cwd: process.cwd() })
-    res.json({ ok: true, message: 'Seed ejecutado correctamente' })
+    res.json({ ok: true, message: 'Migración y seed ejecutados correctamente' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
