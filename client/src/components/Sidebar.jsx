@@ -14,15 +14,15 @@ const NAV = [
   {
     section: 'Clientes',
     items: [
-      { to: '/admin/clients',   icon: 'ti-users',           label: 'Historial', badge: '24' },
-      { to: '/admin/portal',    icon: 'ti-device-mobile',   label: 'Portal cliente' },
+      { to: '/admin/clients',   icon: 'ti-users',          label: 'Historial', badge: '24' },
+      { to: '/admin/portal',    icon: 'ti-device-mobile',  label: 'Portal cliente' },
     ]
   },
   {
     section: 'Automatización',
     items: [
-      { to: '/admin/reminders', icon: 'ti-bell',            label: 'Recordatorios' },
-      { to: '/admin/whatsapp',  icon: 'ti-brand-whatsapp',  label: 'WhatsApp', badgeGreen: true },
+      { to: '/admin/reminders', icon: 'ti-bell',           label: 'Recordatorios' },
+      { to: '/admin/whatsapp',  icon: 'ti-brand-whatsapp', label: 'WhatsApp', badgeGreen: true },
     ]
   },
 ]
@@ -30,7 +30,6 @@ const NAV = [
 export default function Sidebar() {
   return (
     <aside className="w-56 bg-gray-50 border-r border-gray-100 flex flex-col flex-shrink-0 overflow-y-auto">
-      {/* Logo */}
       <div className="px-4 py-5 border-b border-gray-100 text-center">
         <img
           src="/gallery/Logo.jpg"
@@ -47,7 +46,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-4">
         {NAV.map(({ section, items }) => (
           <div key={section}>
@@ -60,9 +58,7 @@ export default function Sidebar() {
                   key={to}
                   to={to}
                   end={to === '/admin'}
-                  className={({ isActive }) =>
-                    `nav-item ${isActive ? 'active' : ''}`
-                  }
+                  className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
                 >
                   <i className={`ti ${icon} text-base flex-shrink-0`} />
                   <span className="flex-1 text-sm">{label}</span>
@@ -81,9 +77,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="p-3 border-t border-gray-100">
-        
+        <a
           href={SALON_INFO.instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
