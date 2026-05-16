@@ -5,33 +5,26 @@ const NAV = [
   {
     section: 'Salón',
     items: [
-      { to: '/admin',            icon: 'ti-layout-dashboard', label: 'Resumen' },
-      { to: '/admin/calendar',   icon: 'ti-calendar',         label: 'Calendario' },
-      { to: '/admin/booking',    icon: 'ti-plus',             label: 'Nueva cita' },
-      { to: '/admin/services',   icon: 'ti-list',             label: 'Servicios' },
-      { to: '/admin/discounts',  icon: 'ti-tag',              label: 'Descuentos' },
+      { to: '/admin',           icon: 'ti-layout-dashboard', label: 'Resumen' },
+      { to: '/admin/calendar',  icon: 'ti-calendar',         label: 'Calendario' },
+      { to: '/admin/services',  icon: 'ti-list',             label: 'Servicios' },
+      { to: '/admin/discounts', icon: 'ti-tag',              label: 'Descuentos' },
     ]
   },
   {
     section: 'Clientes',
     items: [
-      { to: '/admin/clients',    icon: 'ti-users',            label: 'Historial', badge: '24' },
-      { to: '/admin/portal',     icon: 'ti-device-mobile',    label: 'Portal cliente' },
+      { to: '/admin/clients',   icon: 'ti-users',           label: 'Historial', badge: '24' },
+      { to: '/admin/portal',    icon: 'ti-device-mobile',   label: 'Portal cliente' },
     ]
   },
   {
     section: 'Automatización',
     items: [
-      { to: '/admin/reminders',  icon: 'ti-bell',             label: 'Recordatorios' },
-      { to: '/admin/whatsapp',   icon: 'ti-brand-whatsapp',   label: 'WhatsApp', badgeGreen: true },
+      { to: '/admin/reminders', icon: 'ti-bell',            label: 'Recordatorios' },
+      { to: '/admin/whatsapp',  icon: 'ti-brand-whatsapp',  label: 'WhatsApp', badgeGreen: true },
     ]
   },
-  {
-    section: 'Info',
-    items: [
-      { to: '/admin/info',       icon: 'ti-info-circle',      label: 'Info del salón' },
-    ]
-  }
 ]
 
 export default function Sidebar() {
@@ -39,8 +32,12 @@ export default function Sidebar() {
     <aside className="w-56 bg-gray-50 border-r border-gray-100 flex flex-col flex-shrink-0 overflow-y-auto">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-gray-100 text-center">
-        <div className="font-display text-2xl italic text-kr-rose leading-none">KR</div>
-        <div className="text-sm font-medium text-gray-800 mt-1">{SALON_INFO.name}</div>
+        <img
+          src="/gallery/Logo.jpg"
+          alt="Kerlyr Studio"
+          className="w-20 h-20 rounded-full object-cover mx-auto mb-2"
+        />
+        <div className="text-sm font-medium text-gray-800">{SALON_INFO.name}</div>
         <div className="text-[10px] text-gray-400 tracking-widest uppercase mt-0.5">
           {SALON_INFO.tagline}
         </div>
@@ -86,7 +83,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="p-3 border-t border-gray-100">
-        <a
+        
           href={SALON_INFO.instagramUrl}
           target="_blank"
           rel="noopener noreferrer"

@@ -30,12 +30,16 @@ export default function Login() {
     <div className="min-h-screen bg-kr-rose-light flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-sm border border-kr-rose-mid w-full max-w-sm p-8">
 
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <p className="font-display italic text-5xl text-kr-rose leading-none">KR</p>
-          <p className="text-base font-medium text-gray-800 mt-2">Kerlyr Studio</p>
-          <p className="text-xs text-gray-400 tracking-widest uppercase mt-1">Panel de administración</p>
-        </div>
+      {/* Logo */}
+<div className="text-center mb-8">
+  <img
+    src="/gallery/Logo.jpg"
+    alt="Kerlyr Studio"
+    className="w-24 h-24 rounded-full object-cover mx-auto mb-3 shadow-sm border border-rose-100"
+  />
+  <p className="text-base font-medium text-gray-800">Kerlyr Studio</p>
+  <p className="text-xs text-gray-400 tracking-widest uppercase mt-1">Panel de administración</p>
+</div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
