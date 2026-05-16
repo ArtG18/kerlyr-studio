@@ -8,13 +8,18 @@ const prisma = new PrismaClient()
 // GET /appointments — citas reales con filtro por fecha
 router.get('/', auth, async (req, res) => {
   try {
-    const { date } = req.query
+    const { date, start, end } = req.query
 
     const where = {}
     if (date) {
-      const start = new Date(date); start.setHours(0,0,0,0)
-      const end   = new Date(date); end.setHours(23,59,59,999)
-      where.date  = { gte: start, lte: end }
+      const s = new Date(date); s.setHours(0,0,0,0)
+      const e = new Date(date); e.setHours(23,59,59,999)
+      where.date = { gte: s, lte: e }
+    } else if (start && end) {
+      where.date = {
+        gte: new Date(start),
+        lte: new Date(end + 'T23:59:59')
+      }
     }
 
     const appointments = await prisma.appointment.findMany({

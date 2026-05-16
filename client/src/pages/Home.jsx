@@ -57,47 +57,58 @@ export default function Home() {
 
       {/* HERO */}
       <section className="pt-20 min-h-[90vh] flex items-center bg-gradient-to-br from-rose-50 via-white to-pink-50">
-        <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-2 gap-12 items-center">
-          <div>
-            <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-4">✨ Nails · Pestañas · Cejas · Depilación</p>
-            <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
-              Tu belleza,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">nuestra pasión</span>
-            </h1>
-            <p className="text-gray-500 text-lg leading-relaxed mb-8">
-              En Kerlyr Studio te ofrecemos una experiencia única de cuidado y belleza.
-              Desde manicure artístico hasta extensiones profesionales, todo con amor y dedicación.
-            </p>
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate('/portal')}
-                className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-8 py-4 rounded-2xl font-semibold text-base shadow-lg shadow-rose-200 hover:shadow-rose-300 hover:scale-105 transition-all duration-200">
-                💅 Agenda ahora
-              </button>
-              <a href="#galeria" className="text-gray-500 hover:text-gray-800 font-medium transition-colors flex items-center gap-2">
-                Ver galería
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </a>
-            </div>
-            <div className="flex items-center gap-6 mt-10 pt-8 border-t border-rose-100">
-              <div className="text-center"><p className="text-2xl font-bold text-gray-900">+500</p><p className="text-xs text-gray-400">Clientas felices</p></div>
-              <div className="w-px h-10 bg-rose-100" />
-              <div className="text-center"><p className="text-2xl font-bold text-gray-900">5★</p><p className="text-xs text-gray-400">Calificación</p></div>
-              <div className="w-px h-10 bg-rose-100" />
-              <div className="text-center"><p className="text-2xl font-bold text-gray-900">3+</p><p className="text-xs text-gray-400">Años de experiencia</p></div>
-            </div>
+        <div className="max-w-3xl mx-auto px-6 py-16 text-center">
+          {/* Logo grande */}
+          <div className="flex justify-center mb-6">
+            <img
+              src="/gallery/Logo.jpg"
+              alt="Kerlyr Studio"
+              className="w-28 h-28 rounded-full object-cover shadow-xl border-4 border-white ring-2 ring-rose-100"
+            />
           </div>
-          {/* Hero images — sin foto7/foto8 */}
-          <div className="grid grid-cols-2 gap-3 h-80">
-            <div className="rounded-3xl overflow-hidden shadow-xl">
-              <img src="/gallery/foto12.jpg" alt="" className="w-full h-full object-cover object-center" />
+
+          <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-4">
+            ✨ Nails · Pestañas · Cejas · Depilación
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-6">
+            Tu belleza,{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">
+              nuestra pasión
+            </span>
+          </h1>
+          <p className="text-gray-500 text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
+            En Kerlyr Studio te ofrecemos una experiencia única de cuidado y belleza.
+            Desde manicure artístico hasta extensiones profesionales, todo con amor y dedicación.
+          </p>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <button onClick={() => navigate('/portal')}
+              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-8 py-4 rounded-2xl font-semibold text-base shadow-lg shadow-rose-200 hover:shadow-rose-300 hover:scale-105 transition-all duration-200">
+              💅 Agenda ahora
+            </button>
+            <a href="#galeria"
+              className="text-gray-500 hover:text-gray-800 font-medium transition-colors flex items-center gap-2">
+              Ver galería
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </a>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center justify-center gap-8 mt-12 pt-8 border-t border-rose-100">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">+500</p>
+              <p className="text-xs text-gray-400">Clientas felices</p>
             </div>
-            <div className="grid grid-rows-2 gap-3">
-              <div className="rounded-2xl overflow-hidden shadow-lg">
-                <img src="/gallery/foto4.jpeg" alt="" className="w-full h-full object-cover object-center" />
-              </div>
-              <div className="rounded-2xl overflow-hidden shadow-lg">
-                <img src="/gallery/foto9.jpeg" alt="" className="w-full h-full object-cover object-center" />
-              </div>
+            <div className="w-px h-10 bg-rose-100" />
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">5★</p>
+              <p className="text-xs text-gray-400">Calificación</p>
+            </div>
+            <div className="w-px h-10 bg-rose-100" />
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">3+</p>
+              <p className="text-xs text-gray-400">Años de experiencia</p>
             </div>
           </div>
         </div>
