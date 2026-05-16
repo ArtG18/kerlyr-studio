@@ -32,12 +32,6 @@ app.use('/workers',             workerRoutes)
 
 app.get('/', (_req, res) => res.json({ status: 'ok', app: 'Kerlyr Studio API' }))
 
-app.use((_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }))
-
-app.use((err, _req, res, _next) => {
-  console.error(err)
-  res.status(500).json({ error: 'Error interno del servidor' })
-})
 // Ruta temporal para ejecutar seed — ELIMINAR después de usar
 app.get('/run-seed', async (_req, res) => {
   try {
@@ -47,6 +41,14 @@ app.get('/run-seed', async (_req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
+})
+
+// 404 — debe ir al final
+app.use((_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }))
+
+app.use((err, _req, res, _next) => {
+  console.error(err)
+  res.status(500).json({ error: 'Error interno del servidor' })
 })
 
 module.exports = app
