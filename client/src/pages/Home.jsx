@@ -121,24 +121,77 @@ export default function Home() {
             <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-2">Lo que ofrecemos</p>
             <h2 className="text-3xl font-bold text-gray-900">Nuestros servicios</h2>
           </div>
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {SERVICES_PREVIEW.map(svc => (
-              <div key={svc.label} onClick={() => navigate('/portal')}
-                className="group p-6 rounded-2xl border border-rose-100 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-50 transition-all duration-200 cursor-pointer">
+              <div key={svc.label}
+                className="group p-6 rounded-2xl border border-rose-100 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-50 transition-all duration-200">
                 <div className="text-3xl mb-3">{svc.icon}</div>
                 <h3 className="text-base font-semibold text-gray-800 mb-1">{svc.label}</h3>
-                <p className="text-sm text-gray-400">{svc.desc}</p>
-                <p className="text-xs text-rose-400 mt-3 group-hover:underline">Ver precios →</p>
+                <p className="text-sm text-gray-400 mb-4">{svc.desc}</p>
+                <button
+                  onClick={() => setOpenCat(svc.cat)}
+                  className="text-xs text-rose-400 hover:text-rose-600 font-medium transition-colors"
+                >
+                  Ver precios →
+                </button>
               </div>
             ))}
           </div>
           <div className="text-center mt-10">
-            <button onClick={() => navigate('/portal')} className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors">
+            <button onClick={() => navigate('/portal')}
+              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors">
               Ver todos los servicios y precios
             </button>
           </div>
         </div>
       </section>
+
+      {/* MODAL PRECIOS */}
+      {openCat && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setOpenCat(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
+              <div>
+                <p className="text-xs text-rose-400 font-medium uppercase tracking-widest">
+                  {SERVICES_PREVIEW.find(s => s.cat === openCat)?.icon} {SERVICES_PREVIEW.find(s => s.cat === openCat)?.label}
+                </p>
+                <h3 className="text-base font-semibold text-gray-900 mt-0.5">Lista de precios</h3>
+              </div>
+              <button onClick={() => setOpenCat(null)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-colors">
+                ✕
+              </button>
+            </div>
+            <div className="p-5 space-y-2">
+              {priceList.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-8">Cargando precios...</p>
+              ) : (
+                priceList.map((svc, i) => (
+                  <div key={i} className="flex items-center justify-between py-2.5 px-3 bg-rose-50/50 rounded-xl">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{svc.name}</p>
+                      {svc.detail && <p className="text-xs text-gray-400">{svc.detail}</p>}
+                      <p className="text-[10px] text-gray-300">{svc.duration} min</p>
+                    </div>
+                    <p className="text-sm font-bold text-rose-500 flex-shrink-0 ml-4">
+                      ${Number(svc.price).toLocaleString('es-CL')}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="p-5 pt-0">
+              <button onClick={() => { setOpenCat(null); navigate('/portal') }}
+                className="w-full bg-gradient-to-r from-rose-400 to-pink-500 text-white py-3 rounded-xl font-semibold hover:scale-105 transition-all shadow-md">
+                💅 Agendar ahora
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-2">Con todo medio de pago · Costo de retiro adicional</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ABOUT */}
       <section className="py-20 bg-gradient-to-br from-rose-50 to-pink-50">
