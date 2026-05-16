@@ -5,7 +5,7 @@ const auth = require('../middleware/auth')
 const router = express.Router()
 const prisma = new PrismaClient()
 
-// GET /services — público (lo usa el portal de clientes)
+// GET /services — público
 router.get('/', async (req, res) => {
   try {
     const services = await prisma.service.findMany({
@@ -18,12 +18,22 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /services/all — todos incluyendo inactivos (solo admin)
+router.get('/all', auth, async (req, res) => {
+  try {
+    const services = await prisma.service.findMany({
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    })
+    res.json(services)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // GET /services/:id
 router.get('/:id', async (req, res) => {
   try {
-    const svc = await prisma.service.findUnique({
-      where: { id: Number(req.params.id) },
-    })
+    const svc = await prisma.service.findUnique({ where: { id: Number(req.params.id) } })
     if (!svc) return res.status(404).json({ error: 'Servicio no encontrado' })
     res.json(svc)
   } catch (err) {
@@ -31,7 +41,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// POST /services — solo admin
+// POST /services — crear servicio
 router.post('/', auth, async (req, res) => {
   try {
     const { name, detail, price, duration, category } = req.body
@@ -44,17 +54,19 @@ router.post('/', auth, async (req, res) => {
   }
 })
 
-// PUT /services/:id
+// PUT /services/:id — editar servicio
 router.put('/:id', auth, async (req, res) => {
   try {
     const { name, detail, price, duration, category, active } = req.body
     const svc = await prisma.service.update({
       where: { id: Number(req.params.id) },
       data: {
-        name, detail,
-        price: price !== undefined ? Number(price) : undefined,
+        name,
+        detail,
+        price:    price    !== undefined ? Number(price)    : undefined,
         duration: duration !== undefined ? Number(duration) : undefined,
-        category, active,
+        category,
+        active,
       },
     })
     res.json(svc)
@@ -63,7 +75,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 })
 
-// DELETE /services/:id (soft delete)
+// DELETE /services/:id — soft delete
 router.delete('/:id', auth, async (req, res) => {
   try {
     await prisma.service.update({
