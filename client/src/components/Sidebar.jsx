@@ -14,7 +14,7 @@ const NAV = [
   {
     section: 'Clientes',
     items: [
-      { to: '/admin/clients',   icon: 'ti-users',          label: 'Historial', badge: '24' },
+      { to: '/admin/clients',   icon: 'ti-users',          label: 'Historial' },
       { to: '/admin/portal',    icon: 'ti-device-mobile',  label: 'Portal cliente' },
     ]
   },
