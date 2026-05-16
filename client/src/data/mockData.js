@@ -13,7 +13,7 @@ export const WORKERS = [
   {
     id: 2,
     name: 'Adri',
-    initials: 'VS',
+    initials: 'AD',
     color: '#EAF3DE',
     textColor: '#27500A',
     role: 'Especialista pestañas y cejas',
@@ -23,29 +23,39 @@ export const WORKERS = [
   {
     id: 3,
     name: 'Leonela',
-    initials: 'DM',
+    initials: 'LN',
     color: '#E6F1FB',
     textColor: '#0C447C',
     role: 'Manicurista',
     specialties: ['manicure', 'kapping', 'pedicure'],
-    available: false,
+    available: true,
   },
   {
     id: 4,
     name: 'Josi',
-    initials: 'JG',
+    initials: 'JC',
     color: '#F9E79F',
     textColor: '#5D4037',
     role: 'Especialista pestañas y cejas',
-    specialties: ['pestanas', 'man', 'depilacion'],
+    specialties: ['pestanas', 'manicure', 'depilacion'],
     available: true,
-  } 
+  },
+  {
+  id: 4,
+    name: 'Liz',
+    initials: 'LZ',
+    color: '#fbfbf9',
+    textColor: '#df4ec7',
+    role: 'Especialista manicure y pedicure',
+    specialties: ['manicure', 'pedicure'],
+    available: true,
+  }
 ]
 
 // Slots ocupados hoy por trabajadora
 export const BOOKED_SLOTS = {
-  1: ['10:00', '11:30', '16:00'],
-  2: ['14:00', '17:00'],
+  1: [],
+  2: [],
   3: [],
   4: [],
 }
