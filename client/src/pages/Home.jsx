@@ -25,7 +25,9 @@ const SERVICES_PREVIEW = [
 
 export default function Home() {
   const navigate = useNavigate()
-  const [lightbox, setLightbox] = useState(null)
+  const [lightbox,  setLightbox]  = useState(null)
+  const [openCat,   setOpenCat]   = useState(null)
+  const [priceList, setPriceList] = useState([])
 
   return (
     <div className="min-h-screen bg-white font-sans">
