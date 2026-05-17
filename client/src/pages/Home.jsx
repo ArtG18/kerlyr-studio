@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const GALLERY = [
   { src: '/gallery/default.jpg',  label: 'Nail art degradado' },
@@ -28,6 +28,14 @@ export default function Home() {
   const [lightbox,  setLightbox]  = useState(null)
   const [openCat,   setOpenCat]   = useState(null)
   const [priceList, setPriceList] = useState([])
+
+  useEffect(() => {
+    if (!openCat) { setPriceList([]); return }
+    fetch('https://kerlyr-studio-server.onrender.com/services')
+      .then(r => r.json())
+      .then(data => setPriceList(data.filter(s => s.category === openCat)))
+      .catch(() => setPriceList([]))
+  }, [openCat])
 
   return (
     <div className="min-h-screen bg-white font-sans">
