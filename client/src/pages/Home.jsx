@@ -15,12 +15,12 @@ const GALLERY = [
 ]
 
 const SERVICES_PREVIEW = [
-  { icon: '💅', label: 'Manicure',    desc: 'Clásica, permanente, francesa' },
-  { icon: '💎', label: 'Kapping',     desc: 'Polygel y acrílico' },
-  { icon: '✨', label: 'Extensiones', desc: 'Polygel y acrílico' },
-  { icon: '🦶', label: 'Pedicure',    desc: 'Exprés y spa completa' },
-  { icon: '👁️', label: 'Pestañas',   desc: 'Volumen egipcio, brasilero' },
-  { icon: '🌿', label: 'Cejas',       desc: 'Laminado, planchado, perfilado' },
+  { icon: '💅', label: 'Manicure',    desc: 'Clásica, permanente, francesa', cat: 'manicure' },
+  { icon: '💎', label: 'Kapping',     desc: 'Polygel y acrílico',            cat: 'kapping' },
+  { icon: '✨', label: 'Extensiones', desc: 'Polygel y acrílico',            cat: 'extensiones' },
+  { icon: '🦶', label: 'Pedicure',    desc: 'Exprés y spa completa',         cat: 'pedicure' },
+  { icon: '👁️', label: 'Pestañas',   desc: 'Volumen egipcio, brasilero',    cat: 'pestanas' },
+  { icon: '🌿', label: 'Cejas',       desc: 'Laminado, planchado, perfilado',cat: 'cejas' },
 ]
 
 export default function Home() {
