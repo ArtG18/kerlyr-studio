@@ -23,15 +23,18 @@ const SERVICES_PREVIEW = [
   { icon: '🌿', label: 'Cejas',       desc: 'Laminado, planchado, perfilado',cat: 'cejas' },
 ]
 
+const BACKEND = import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com'
+
 export default function Home() {
   const navigate = useNavigate()
   const [lightbox,  setLightbox]  = useState(null)
   const [openCat,   setOpenCat]   = useState(null)
   const [priceList, setPriceList] = useState([])
 
+  // Cargar precios cuando se abre una categoría
   useEffect(() => {
     if (!openCat) { setPriceList([]); return }
-    fetch('https://kerlyr-studio-server.onrender.com/services')
+    fetch(`${BACKEND}/services`)
       .then(r => r.json())
       .then(data => setPriceList(data.filter(s => s.category === openCat)))
       .catch(() => setPriceList([]))
