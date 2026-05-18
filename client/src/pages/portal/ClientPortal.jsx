@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import api from '../../services/api'
-import { SALON_INFO } from '../../data/mockData'
 
 const CATEGORY_LABELS = {
   manicure:    'Manicure',
@@ -18,6 +16,8 @@ const ALL_SLOTS = [
   '16:00','16:30','17:00','17:30','18:00','18:30',
 ]
 
+const BACKEND = import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com'
+
 function applyDiscount(price, discount) {
   if (!discount) return price
   if (discount.type === 'percent') return Math.round(price * (1 - discount.value / 100))
@@ -27,8 +27,8 @@ function applyDiscount(price, discount) {
 function StepDot({ n, active, done }) {
   return (
     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all
-      ${done ? 'bg-emerald-500 text-white' : active ? 'bg-kr-rose text-white' : 'bg-gray-100 text-gray-400'}`}>
-      {done ? <i className="ti ti-check text-xs" /> : n}
+      ${done ? 'bg-emerald-500 text-white' : active ? 'bg-rose-400 text-white' : 'bg-gray-100 text-gray-400'}`}>
+      {done ? '✓' : n}
     </div>
   )
 }
@@ -36,108 +36,143 @@ function StepDot({ n, active, done }) {
 export default function ClientPortal() {
   const [step, setStep] = useState(1)
 
-  // Data from API
-  const [workers,  setWorkers]  = useState([])
-  const [services, setServices] = useState([])
-  const [discount, setDiscount] = useState(null)
-  const [slots,    setSlots]    = useState([])
+  const [workers,   setWorkers]   = useState([])
+  const [services,  setServices]  = useState([])
+  const [discount,  setDiscount]  = useState(null)
+  const [slots,     setSlots]     = useState([])
 
-  // Selections
-  const [selWorker,  setSelWorker]  = useState(null)
-  const [selCat,     setSelCat]     = useState('all')
-  const [selService, setSelService] = useState(null)
-  const [selDate,    setSelDate]    = useState('')
-  const [selSlot,    setSelSlot]    = useState(null)
-  const [form,       setForm]       = useState({ name: '', phone: '' })
+  const [selWorker,   setSelWorker]   = useState(null)
+  const [selServices, setSelServices] = useState([]) // MÚLTIPLE
+  const [selCat,      setSelCat]      = useState('all')
+  const [selDate,     setSelDate]     = useState('')
+  const [selSlot,     setSelSlot]     = useState(null)
+  const [form,        setForm]        = useState({ name: '', phone: '' })
 
-  // UI state
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [submitting,   setSubmitting]   = useState(false)
   const [done,         setDone]         = useState(false)
   const [error,        setError]        = useState('')
 
-  // Load workers, services, active discount on mount
+  // Cargar datos iniciales
   useEffect(() => {
-    api.get('/workers').then(r => setWorkers(r.data.filter(w => w.available))).catch(() => {})
-    api.get('/services').then(r => setServices(r.data)).catch(() => {})
-    api.get('/discounts/active').then(r => setDiscount(r.data)).catch(() => {})
+    fetch(`${BACKEND}/workers`)
+      .then(r => r.json())
+      .then(data => setWorkers(data.filter(w => w.available)))
+      .catch(() => {})
+
+    fetch(`${BACKEND}/services`)
+      .then(r => r.json())
+      .then(setServices)
+      .catch(() => {})
+
+    fetch(`${BACKEND}/discounts/active`)
+      .then(r => r.json())
+      .then(setDiscount)
+      .catch(() => {})
   }, [])
 
-  // Load available slots when worker + date selected
+  // Cargar slots cuando cambia trabajadora o fecha
   useEffect(() => {
     if (!selWorker || !selDate) return
     setLoadingSlots(true)
     setSlots([])
     setSelSlot(null)
-    api.get(`/workers/${selWorker.id}/slots`, { params: { date: selDate } })
-      .then(r => setSlots(r.data.availableSlots))
+    fetch(`${BACKEND}/workers/${selWorker.id}/slots?date=${selDate}`)
+      .then(r => r.json())
+      .then(data => setSlots(data.availableSlots || ALL_SLOTS))
       .catch(() => setSlots(ALL_SLOTS))
       .finally(() => setLoadingSlots(false))
   }, [selWorker, selDate])
-
-  const filteredServices = services.filter(s => {
-    const workerCats = selWorker?.specialties?.split(',') || []
-    const catMatch = selCat === 'all' || s.category === selCat
-    const workerMatch = !selWorker || workerCats.includes(s.category)
-    return catMatch && workerMatch
-  })
 
   const availableCats = selWorker
     ? [...new Set(services.filter(s => selWorker.specialties?.split(',').includes(s.category)).map(s => s.category))]
     : Object.keys(CATEGORY_LABELS)
 
+  const filteredServices = services.filter(s => {
+    const workerMatch = !selWorker || selWorker.specialties?.split(',').includes(s.category)
+    const catMatch    = selCat === 'all' || s.category === selCat
+    return workerMatch && catMatch
+  })
+
+  // Toggle selección múltiple de servicios
+  const toggleService = (svc) => {
+    setSelServices(prev => {
+      const exists = prev.find(s => s.id === svc.id)
+      if (exists) return prev.filter(s => s.id !== svc.id)
+      return [...prev, svc]
+    })
+  }
+
+  const totalPrice = selServices.reduce((sum, s) => sum + applyDiscount(s.price, discount), 0)
+  const totalDuration = selServices.reduce((sum, s) => sum + (s.duration || 0), 0)
+
   const handleSubmit = async () => {
-    if (!form.name || !form.phone || !selWorker || !selService || !selSlot || !selDate) {
-      setError('Por favor completa todos los campos')
+    if (!form.name || !form.phone || !selWorker || selServices.length === 0 || !selSlot || !selDate) {
+      setError('Por favor completa todos los campos y selecciona al menos un servicio')
       return
     }
     setSubmitting(true)
     setError('')
     try {
-      // 1. Create or find client
-      const clientRes = await api.post('/clients/portal', { name: form.name, phone: form.phone })
-      const clientId = clientRes.data.id
-
-      // 2. Create appointment
-      await api.post('/appointments/portal', {
-        clientId,
-        serviceId: selService.id,
-        workerId:  selWorker.id,
-        date:      selDate,
-        timeSlot:  selSlot,
+      // 1. Crear o encontrar cliente
+      const clientRes = await fetch(`${BACKEND}/clients/portal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, phone: form.phone }),
       })
+      const client = await clientRes.json()
+      if (!clientRes.ok) throw new Error(client.error)
+
+      // 2. Crear una cita por cada servicio seleccionado
+      for (const svc of selServices) {
+        const apptRes = await fetch(`${BACKEND}/appointments/portal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId:  client.id,
+            serviceId: svc.id,
+            workerId:  selWorker.id,
+            date:      selDate,
+            timeSlot:  selSlot,
+          }),
+        })
+        const appt = await apptRes.json()
+        if (!apptRes.ok) throw new Error(appt.error)
+      }
 
       setDone(true)
     } catch (err) {
-      setError(err.response?.data?.error || 'Ocurrió un error. Intenta de nuevo.')
+      setError(err.message || 'Ocurrió un error. Intenta de nuevo.')
     } finally {
       setSubmitting(false)
     }
   }
 
-  // ─── DONE screen ────────────────────────────────────────────────────────────
+  // ── PANTALLA DE ÉXITO ──────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className="text-center py-16">
+      <div className="text-center py-16 px-4">
         <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-          <i className="ti ti-check text-emerald-500 text-3xl" />
+          <span className="text-emerald-500 text-3xl">✓</span>
         </div>
-        <h2 className="text-xl font-medium text-gray-800 mb-2">¡Cita reservada!</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">¡Cita reservada!</h2>
         <p className="text-sm text-gray-500 mb-1">
-          {selService?.name} con {selWorker?.name}
+          {selServices.map(s => s.name).join(' + ')}
         </p>
-        <p className="text-sm text-gray-500 mb-6">
-          {selDate} a las {selSlot} hrs
-        </p>
+        <p className="text-sm text-gray-500 mb-1">con {selWorker?.name}</p>
+        <p className="text-sm text-gray-500 mb-6">{selDate} a las {selSlot} hrs</p>
         <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 max-w-sm mx-auto mb-6">
           <p className="text-xs text-emerald-700">
-            <i className="ti ti-brand-whatsapp mr-1" />
-            Recibirás una confirmación por WhatsApp al {form.phone}
+            📱 Recibirás una confirmación por WhatsApp al {form.phone}
           </p>
         </div>
         <button
-          onClick={() => { setDone(false); setStep(1); setSelWorker(null); setSelService(null); setSelSlot(null); setSelDate(''); setForm({ name: '', phone: '' }) }}
-          className="btn-primary mx-auto"
+          onClick={() => {
+            setDone(false); setStep(1); setSelWorker(null)
+            setSelServices([]); setSelSlot(null); setSelDate('')
+            setForm({ name: '', phone: '' })
+          }}
+          className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-6 py-3 rounded-xl font-medium"
         >
           Agendar otra cita
         </button>
@@ -145,30 +180,32 @@ export default function ClientPortal() {
     )
   }
 
+  // ── FORMULARIO ─────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-5">
-      {/* Discount banner */}
+    <div className="space-y-4 max-w-xl mx-auto">
+
+      {/* Descuento activo */}
       {discount && (
         <div className="flex items-center gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100">
-          <i className="ti ti-tag text-amber-500 text-lg flex-shrink-0" />
+          <span className="text-amber-500 text-lg">🏷️</span>
           <div>
             <p className="text-sm font-medium text-amber-800">{discount.label}</p>
             <p className="text-xs text-amber-600">
               {discount.type === 'percent'
-                ? `${discount.value}% de descuento en todos los servicios`
-                : `$${Number(discount.value).toLocaleString('es-CL')} de descuento por servicio`
+                ? `${discount.value}% de descuento aplicado`
+                : `$${Number(discount.value).toLocaleString('es-CL')} de descuento`
               }
             </p>
           </div>
         </div>
       )}
 
-      {/* Step indicator */}
+      {/* Steps */}
       <div className="flex items-center gap-2">
-        {['Profesional','Servicio','Fecha y hora','Tus datos'].map((label, i) => (
-          <div key={label} className="flex items-center gap-2 flex-1">
+        {['Profesional','Servicios','Fecha y hora','Tus datos'].map((label, i) => (
+          <div key={label} className="flex items-center gap-1.5 flex-1">
             <StepDot n={i+1} active={step === i+1} done={step > i+1} />
-            <span className={`text-xs hidden sm:block ${step === i+1 ? 'text-kr-rose-dark font-medium' : step > i+1 ? 'text-emerald-600' : 'text-gray-300'}`}>
+            <span className={`text-xs hidden sm:block truncate ${step === i+1 ? 'text-rose-500 font-medium' : step > i+1 ? 'text-emerald-600' : 'text-gray-300'}`}>
               {label}
             </span>
             {i < 3 && <div className="flex-1 h-px bg-gray-100" />}
@@ -176,101 +213,133 @@ export default function ClientPortal() {
         ))}
       </div>
 
-      {/* STEP 1 — Profesional */}
+      {/* PASO 1 — Profesional */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5">
         <p className="text-sm font-medium text-gray-700 mb-3">
-          <span className="text-kr-rose mr-2">1.</span>Elige la profesional
+          <span className="text-rose-400 mr-1.5">1.</span>Elige la profesional
         </p>
         <div className="space-y-2">
-          {workers.map(w => {
-            const cats = w.specialties?.split(',').map(c => CATEGORY_LABELS[c]).filter(Boolean).join(', ')
-            return (
-              <button
-                key={w.id}
-                onClick={() => { setSelWorker(w); setSelService(null); setSelCat('all'); setStep(Math.max(step, 2)) }}
-                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all
-                  ${selWorker?.id === w.id ? 'border-kr-rose bg-kr-rose-light' : 'border-gray-100 hover:border-kr-rose-mid'}`}
-              >
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0"
-                  style={{ background: '#f5e8e4', color: '#8b5e52' }}>
-                  {w.name.split(' ').map(n => n[0]).join('').slice(0,2)}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{w.name}</p>
-                  <p className="text-xs text-gray-400">{cats}</p>
-                </div>
-                {selWorker?.id === w.id && <i className="ti ti-check text-kr-rose" />}
-              </button>
-            )
-          })}
+          {workers.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-4">Cargando profesionales...</p>
+          ) : (
+            workers.map(w => {
+              const cats = w.specialties?.split(',').map(c => CATEGORY_LABELS[c]).filter(Boolean).join(', ')
+              const isSelected = selWorker?.id === w.id
+              return (
+                <button key={w.id}
+                  onClick={() => { setSelWorker(w); setSelServices([]); setSelCat('all'); setStep(Math.max(step, 2)) }}
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all
+                    ${isSelected ? 'border-rose-300 bg-rose-50' : 'border-gray-100 hover:border-rose-200'}`}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-rose-100 text-rose-600">
+                    {w.name.split(' ').map(n => n[0]).join('').slice(0,2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">{w.name}</p>
+                    <p className="text-xs text-gray-400 truncate">{cats}</p>
+                  </div>
+                  {isSelected && <span className="text-rose-400 text-lg">✓</span>}
+                </button>
+              )
+            })
+          )}
         </div>
       </div>
 
-      {/* STEP 2 — Servicio */}
+      {/* PASO 2 — Servicios (múltiple) */}
       {step >= 2 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-sm font-medium text-gray-700 mb-3">
-            <span className="text-kr-rose mr-2">2.</span>Elige el servicio
+            <span className="text-rose-400 mr-1.5">2.</span>
+            Elige los servicios
+            <span className="text-xs font-normal text-gray-400 ml-2">Puedes seleccionar varios</span>
           </p>
-          {/* Category tabs */}
+
+          {/* Tabs de categoría */}
           <div className="flex flex-wrap gap-1.5 mb-3">
             <button onClick={() => setSelCat('all')}
-              className={`text-xs px-3 py-1 rounded-full border transition-all ${selCat === 'all' ? 'bg-kr-rose-light text-kr-rose-dark border-kr-rose' : 'border-gray-200 text-gray-500'}`}>
+              className={`text-xs px-3 py-1 rounded-full border transition-all
+                ${selCat === 'all' ? 'bg-rose-50 text-rose-500 border-rose-200 font-medium' : 'border-gray-200 text-gray-500'}`}>
               Todos
             </button>
             {availableCats.map(cat => (
               <button key={cat} onClick={() => setSelCat(cat)}
-                className={`text-xs px-3 py-1 rounded-full border transition-all ${selCat === cat ? 'bg-kr-rose-light text-kr-rose-dark border-kr-rose' : 'border-gray-200 text-gray-500'}`}>
+                className={`text-xs px-3 py-1 rounded-full border transition-all
+                  ${selCat === cat ? 'bg-rose-50 text-rose-500 border-rose-200 font-medium' : 'border-gray-200 text-gray-500'}`}>
                 {CATEGORY_LABELS[cat]}
               </button>
             ))}
           </div>
-          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+
+          {/* Lista de servicios */}
+          <div className="space-y-1.5 max-h-60 overflow-y-auto">
             {filteredServices.map(svc => {
               const discounted = applyDiscount(svc.price, discount)
-              const isSelected = selService?.id === svc.id
+              const isSelected = selServices.find(s => s.id === svc.id)
               return (
                 <button key={svc.id}
-                  onClick={() => { setSelService(svc); setStep(Math.max(step, 3)) }}
-                  className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all
-                    ${isSelected ? 'border-kr-rose bg-kr-rose-light' : 'border-gray-100 hover:border-kr-rose-mid'}`}>
-                  <div>
+                  onClick={() => { toggleService(svc); setStep(Math.max(step, 2)) }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
+                    ${isSelected ? 'border-rose-300 bg-rose-50' : 'border-gray-100 hover:border-rose-200'}`}>
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all
+                    ${isSelected ? 'bg-rose-400 border-rose-400' : 'border-gray-300'}`}>
+                    {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800">{svc.name}</p>
                     {svc.detail && <p className="text-xs text-gray-400">{svc.detail}</p>}
-                    <p className="text-xs text-gray-300">{svc.duration} min</p>
+                    <p className="text-[10px] text-gray-300">{svc.duration} min</p>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-3">
+                  <div className="text-right flex-shrink-0">
                     {discounted !== svc.price ? (
                       <>
                         <p className="text-xs line-through text-gray-300">${svc.price.toLocaleString('es-CL')}</p>
                         <p className="text-sm font-semibold text-emerald-600">${discounted.toLocaleString('es-CL')}</p>
                       </>
                     ) : (
-                      <p className="text-sm font-medium text-gray-800">${svc.price.toLocaleString('es-CL')}</p>
+                      <p className="text-sm font-medium text-gray-700">${svc.price.toLocaleString('es-CL')}</p>
                     )}
                   </div>
                 </button>
               )
             })}
           </div>
+
+          {/* Resumen selección */}
+          {selServices.length > 0 && (
+            <div className="mt-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-rose-600">{selServices.length} servicio{selServices.length > 1 ? 's' : ''} seleccionado{selServices.length > 1 ? 's' : ''}</p>
+                <p className="text-xs font-semibold text-rose-600">${totalPrice.toLocaleString('es-CL')} · {totalDuration} min</p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {selServices.map(s => (
+                  <span key={s.id} className="text-[10px] bg-white text-rose-500 px-2 py-0.5 rounded-full border border-rose-100">
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+              <button
+                onClick={() => setStep(Math.max(step, 3))}
+                className="w-full mt-2 bg-rose-400 text-white text-xs py-2 rounded-lg font-medium">
+                Continuar →
+              </button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* STEP 3 — Fecha y hora */}
+      {/* PASO 3 — Fecha y hora */}
       {step >= 3 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-sm font-medium text-gray-700 mb-3">
-            <span className="text-kr-rose mr-2">3.</span>Fecha y hora
+            <span className="text-rose-400 mr-1.5">3.</span>Fecha y hora
           </p>
           <div className="mb-4">
-            <label className="form-label">Selecciona una fecha</label>
-            <input
-              type="date"
-              className="form-input"
+            <label className="text-xs text-gray-500 mb-1.5 block">Selecciona una fecha</label>
+            <input type="date" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300"
               min={new Date().toISOString().split('T')[0]}
               value={selDate}
-              onChange={e => { setSelDate(e.target.value); setSelSlot(null); setStep(Math.max(step, 3)) }}
-            />
+              onChange={e => { setSelDate(e.target.value); setSelSlot(null); setStep(Math.max(step, 3)) }} />
           </div>
           {selDate && (
             <>
@@ -278,17 +347,17 @@ export default function ClientPortal() {
                 <p className="text-xs text-gray-400 text-center py-4">Cargando horarios disponibles...</p>
               ) : slots.length === 0 ? (
                 <p className="text-xs text-red-400 bg-red-50 rounded-lg p-3 text-center">
-                  No hay horarios disponibles para {selWorker?.name} en esta fecha.
+                  No hay horarios disponibles para {selWorker?.name?.split(' ')[0]} en esta fecha.
                 </p>
               ) : (
                 <>
-                  <label className="form-label">Horarios disponibles</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block">Horarios disponibles</label>
                   <div className="grid grid-cols-4 gap-2">
                     {slots.map(slot => (
                       <button key={slot}
                         onClick={() => { setSelSlot(slot); setStep(Math.max(step, 4)) }}
-                        className={`py-2 rounded-lg text-xs font-medium border transition-all
-                          ${selSlot === slot ? 'bg-kr-rose text-white border-kr-rose' : 'border-gray-200 text-gray-700 hover:border-kr-rose hover:bg-kr-rose-light'}`}>
+                        className={`py-2 rounded-xl text-xs font-medium border transition-all
+                          ${selSlot === slot ? 'bg-rose-400 text-white border-rose-400' : 'border-gray-200 text-gray-700 hover:border-rose-300 hover:bg-rose-50'}`}>
                         {slot}
                       </button>
                     ))}
@@ -300,58 +369,50 @@ export default function ClientPortal() {
         </div>
       )}
 
-      {/* STEP 4 — Datos */}
+      {/* PASO 4 — Datos */}
       {step >= 4 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-sm font-medium text-gray-700 mb-3">
-            <span className="text-kr-rose mr-2">4.</span>Tus datos
+            <span className="text-rose-400 mr-1.5">4.</span>Tus datos
           </p>
           <div className="space-y-3">
             <div>
-              <label className="form-label">Nombre completo</label>
-              <input className="form-input" type="text" placeholder="Tu nombre" value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <label className="text-xs text-gray-500 mb-1.5 block">Nombre completo</label>
+              <input className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300"
+                type="text" placeholder="Tu nombre"
+                value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div>
-              <label className="form-label">WhatsApp</label>
-              <input className="form-input" type="tel" placeholder="+56 9 ..." value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+              <label className="text-xs text-gray-500 mb-1.5 block">WhatsApp</label>
+              <input className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300"
+                type="tel" placeholder="+56 9 ..."
+                value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
           </div>
 
-          {/* Resumen */}
-          {selService && selSlot && (
-            <div className="mt-4 p-3.5 bg-kr-rose-light rounded-xl border border-kr-rose-mid text-sm space-y-1.5">
-              <p className="font-medium text-kr-rose-dark mb-2">Resumen de tu cita</p>
-              <p className="text-gray-600 text-xs"><i className="ti ti-user mr-1.5" />{selWorker?.name}</p>
-              <p className="text-gray-600 text-xs"><i className="ti ti-sparkles mr-1.5" />{selService.name}</p>
-              <p className="text-gray-600 text-xs"><i className="ti ti-calendar mr-1.5" />{selDate} a las {selSlot} hrs</p>
-              <p className="text-gray-600 text-xs font-medium">
-                <i className="ti ti-cash mr-1.5" />
-                {applyDiscount(selService.price, discount) !== selService.price ? (
-                  <><span className="line-through text-gray-300 mr-1">${selService.price.toLocaleString('es-CL')}</span>
-                  <span className="text-emerald-600">${applyDiscount(selService.price, discount).toLocaleString('es-CL')}</span></>
-                ) : `$${selService.price.toLocaleString('es-CL')}`}
-              </p>
+          {/* Resumen final */}
+          {selServices.length > 0 && selSlot && (
+            <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-100 space-y-1.5 text-xs">
+              <p className="font-semibold text-rose-500 mb-2">Resumen de tu cita</p>
+              <p className="text-gray-600">👤 {selWorker?.name}</p>
+              <p className="text-gray-600">✨ {selServices.map(s => s.name).join(', ')}</p>
+              <p className="text-gray-600">📅 {selDate} a las {selSlot} hrs</p>
+              <p className="text-gray-600">⏱️ {totalDuration} min en total</p>
+              <p className="font-semibold text-rose-500">💰 Total: ${totalPrice.toLocaleString('es-CL')}</p>
             </div>
           )}
 
           {error && (
-            <div className="mt-3 flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-100">
-              <i className="ti ti-alert-circle text-red-400" />
+            <div className="mt-3 flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+              <span className="text-red-400">⚠️</span>
               <p className="text-xs text-red-600">{error}</p>
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
+          <button onClick={handleSubmit}
             disabled={submitting || !form.name || !form.phone}
-            className="btn-primary w-full justify-center py-3 mt-4 disabled:opacity-40"
-          >
-            {submitting
-              ? <><i className="ti ti-loader-2 animate-spin" /> Reservando...</>
-              : <><i className="ti ti-check" /> Confirmar cita</>
-            }
+            className="w-full bg-gradient-to-r from-rose-400 to-pink-500 text-white py-3 rounded-xl font-semibold mt-4 disabled:opacity-40 hover:scale-105 transition-all shadow-md">
+            {submitting ? 'Reservando...' : '💅 Confirmar cita'}
           </button>
         </div>
       )}
