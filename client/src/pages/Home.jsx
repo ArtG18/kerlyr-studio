@@ -23,7 +23,7 @@ const SERVICES_PREVIEW = [
   { icon: '🌿', label: 'Cejas',       desc: 'Laminado, planchado, perfilado',cat: 'cejas' },
 ]
 
-const BACKEND = import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com'
+const BACKEND = (import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com').replace(/\/$/, '')
 
 export default function Home() {
   const navigate = useNavigate()

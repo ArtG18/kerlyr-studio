@@ -16,7 +16,7 @@ const ALL_SLOTS = [
   '16:00','16:30','17:00','17:30','18:00','18:30',
 ]
 
-const BACKEND = import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com'
+const BACKEND = (import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com').replace(/\/$/, '')
 
 function applyDiscount(price, discount) {
   if (!discount) return price
@@ -55,21 +55,21 @@ export default function ClientPortal() {
 
   // Cargar datos iniciales
   useEffect(() => {
-    fetch(`${BACKEND}/workers`)
-      .then(r => r.json())
-      .then(data => setWorkers(data.filter(w => w.available)))
-      .catch(() => {})
+  fetch(`${BACKEND}/workers`)
+    .then(r => r.json())
+    .then(data => setWorkers(Array.isArray(data) ? data.filter(w => w.available) : []))
+    .catch(() => setWorkers([]))
 
-    fetch(`${BACKEND}/services`)
-      .then(r => r.json())
-      .then(setServices)
-      .catch(() => {})
+  fetch(`${BACKEND}/services`)
+    .then(r => r.json())
+    .then(data => setServices(Array.isArray(data) ? data : []))
+    .catch(() => setServices([]))
 
-    fetch(`${BACKEND}/discounts/active`)
-      .then(r => r.json())
-      .then(setDiscount)
-      .catch(() => {})
-  }, [])
+  fetch(`${BACKEND}/discounts/active`)
+    .then(r => r.json())
+    .then(data => setDiscount(data || null))
+    .catch(() => setDiscount(null))
+}, [])
 
   // Cargar slots cuando cambia trabajadora o fecha
   useEffect(() => {
@@ -418,4 +418,4 @@ export default function ClientPortal() {
       )}
     </div>
   )
-}
+} 
