@@ -41,7 +41,7 @@ export const WORKERS = [
     available: true,
   },
   {
-  id: 4,
+  id: 5,
     name: 'Liz',
     initials: 'LZ',
     color: '#fbfbf9',
@@ -58,6 +58,7 @@ export const BOOKED_SLOTS = {
   2: [],
   3: [],
   4: [],
+  5: [],
 }
 
 export const ALL_TIME_SLOTS = [
