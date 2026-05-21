@@ -8,6 +8,7 @@ const NAV = [
       { to: '/admin',           icon: 'ti-layout-dashboard', label: 'Resumen' },
       { to: '/admin/calendar',  icon: 'ti-calendar',         label: 'Calendario' },
       { to: '/admin/services',  icon: 'ti-list',             label: 'Servicios' },
+      { to: '/admin/workers',   icon: 'ti-users-group',      label: 'Trabajadoras' },
       { to: '/admin/discounts', icon: 'ti-tag',              label: 'Descuentos' },
     ]
   },
