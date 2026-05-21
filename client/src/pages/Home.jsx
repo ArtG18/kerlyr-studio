@@ -33,12 +33,22 @@ export default function Home() {
 
   // Cargar precios cuando se abre una categoría
   useEffect(() => {
-    if (!openCat) { setPriceList([]); return }
-    fetch(`${BACKEND}/services`)
-      .then(r => r.json())
-      .then(data => setPriceList(data.filter(s => s.category === openCat)))
-      .catch(() => setPriceList([]))
-  }, [openCat])
+  if (!openCat) {
+    setPriceList([])
+    return
+  }
+
+  fetch(`${BACKEND}/services`)
+    .then(r => r.json())
+    .then(data => {
+      if (openCat === 'all') {
+        setPriceList(data)
+      } else {
+        setPriceList(data.filter(s => s.category === openCat))
+      }
+    })
+    .catch(() => setPriceList([]))
+}, [openCat])
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -94,15 +104,17 @@ export default function Home() {
             Desde manicure artístico hasta extensiones profesionales, todo con amor y dedicación.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <button onClick={() => navigate('/portal')}
-              className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-8 py-4 rounded-2xl font-semibold text-base shadow-lg shadow-rose-200 hover:shadow-rose-300 hover:scale-105 transition-all duration-200">
-              💅 Agenda ahora
+            <button
+              onClick={() => setOpenCat('all')}
+              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors"
+            >
+              Ver todos los servicios y precios
             </button>
             <a href="#galeria"
               className="text-gray-500 hover:text-gray-800 font-medium transition-colors flex items-center gap-2">
               Ver galería
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </a>
           </div>
@@ -151,8 +163,10 @@ export default function Home() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <button onClick={() => navigate('/portal')}
-              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors">
+            <button 
+            onClick={() => setOpenCat('all')}
+              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors"
+            >
               Ver todos los servicios y precios
             </button>
           </div>
@@ -168,7 +182,10 @@ export default function Home() {
             <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
               <div>
                 <p className="text-xs text-rose-400 font-medium uppercase tracking-widest">
-                  {SERVICES_PREVIEW.find(s => s.cat === openCat)?.icon} {SERVICES_PREVIEW.find(s => s.cat === openCat)?.label}
+                  {openCat === 'all'
+                    ? '✨ Todos los servicios'
+                    : `${SERVICES_PREVIEW.find(s => s.cat === openCat)?.icon} ${SERVICES_PREVIEW.find(s => s.cat === openCat)?.label}`
+                  }
                 </p>
                 <h3 className="text-base font-semibold text-gray-900 mt-0.5">Lista de precios</h3>
               </div>
