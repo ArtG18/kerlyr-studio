@@ -39,16 +39,6 @@ export const WORKERS = [
     role: 'Especialista pestañas y cejas',
     specialties: ['pestanas', 'manicure', 'depilacion'],
     available: true,
-  },
-  {
-  id: 5,
-    name: 'Liz',
-    initials: 'LZ',
-    color: '#fbfbf9',
-    textColor: '#df4ec7',
-    role: 'Especialista manicure y pedicure',
-    specialties: ['manicure', 'pedicure'],
-    available: true,
   }
 ]
 
@@ -58,7 +48,6 @@ export const BOOKED_SLOTS = {
   2: [],
   3: [],
   4: [],
-  5: [],
 }
 
 export const ALL_TIME_SLOTS = [
