@@ -1,5 +1,12 @@
 const express = require('express')
 const cors    = require('cors')
+const morgan  = require('morgan')
+
+const {
+  generalLimiter,
+  loginLimiter,
+  portalLimiter
+} = require('./middleware/rateLimiter')
 
 const appointmentRoutes       = require('./routes/appointments')
 const appointmentsPortalRoute = require('./routes/appointmentsPortal')
@@ -12,6 +19,10 @@ const workerRoutes            = require('./routes/workers')
 
 const app = express()
 
+app.disable('x-powered-by')
+
+app.set('trust proxy', 1)
+
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -19,25 +30,51 @@ app.use(cors({
   ],
   credentials: true
 }))
+
 app.use(express.json())
 
-app.use('/auth',                authRoutes)
+app.use(morgan('combined'))
+
+app.use(generalLimiter)
+
+app.use('/auth', loginLimiter)
+
+app.use('/appointments/portal', portalLimiter)
+
+app.use('/auth', authRoutes)
+
 app.use('/appointments/portal', appointmentsPortalRoute)
-app.use('/appointments',        appointmentRoutes)
-app.use('/clients/portal',      clientsPortalRoute)
-app.use('/clients',             clientRoutes)
-app.use('/services',            serviceRoutes)
-app.use('/discounts',           discountRoutes)
-app.use('/workers',             workerRoutes)
+app.use('/appointments', appointmentRoutes)
 
-app.get('/', (_req, res) => res.json({ status: 'ok', app: 'Kerlyr Studio API' }))
+app.use('/clients/portal', clientsPortalRoute)
+app.use('/clients', clientRoutes)
 
+app.use('/services', serviceRoutes)
+app.use('/discounts', discountRoutes)
+app.use('/workers', workerRoutes)
 
-app.use((_req, res) => res.status(404).json({ error: 'Ruta no encontrada' }))
+app.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    app: 'Kerlyr Studio API'
+  })
+})
+
+app.use((_req, res) => {
+  res.status(404).json({
+    error: 'Ruta no encontrada'
+  })
+})
 
 app.use((err, _req, res, _next) => {
-  console.error(err)
-  res.status(500).json({ error: 'Error interno del servidor' })
+  console.error(err.stack)
+
+  res.status(500).json({
+    error:
+      process.env.NODE_ENV === 'production'
+        ? 'Error interno del servidor'
+        : err.message
+  })
 })
 
 module.exports = app
