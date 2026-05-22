@@ -74,41 +74,21 @@ export default function ClientPortal() {
 
   useEffect(() => {
     fetch(`${BACKEND}/workers`)
-      .then(async r => {
-        if (!r.ok) return []
-
-        const text = await r.text()
-
-        try {
-          return JSON.parse(text)
-        } catch {
-          return []
-        }
-      })
-      .then(data =>
+      .then(r => r.json())
+      .then(data => {
         setWorkers(
           Array.isArray(data)
             ? data.filter(w => w.available)
             : []
         )
-      )
+      })
       .catch(() => setWorkers([]))
 
     fetch(`${BACKEND}/services`)
-      .then(async r => {
-        if (!r.ok) return []
-
-        const text = await r.text()
-
-        try {
-          return JSON.parse(text)
-        } catch {
-          return []
-        }
-      })
-      .then(data =>
+      .then(r => r.json())
+      .then(data => {
         setServices(Array.isArray(data) ? data : [])
-      )
+      })
       .catch(() => setServices([]))
 
     fetch(`${BACKEND}/discounts/active`)
@@ -135,53 +115,36 @@ export default function ClientPortal() {
     setSelSlot(null)
 
     fetch(`${BACKEND}/workers/${selWorker.id}/slots?date=${selDate}`)
-      .then(async r => {
-        if (!r.ok) return { availableSlots: ALL_SLOTS }
-
-        const text = await r.text()
-
-        try {
-          return JSON.parse(text)
-        } catch {
-          return { availableSlots: ALL_SLOTS }
-        }
-      })
-      .then(data =>
+      .then(r => r.json())
+      .then(data => {
         setSlots(data.availableSlots || ALL_SLOTS)
-      )
+      })
       .catch(() => setSlots(ALL_SLOTS))
       .finally(() => setLoadingSlots(false))
   }, [selWorker, selDate])
 
   const availableCats = selWorker
-    ? [
-        ...new Set(
-          services
-            .filter(s =>
-              selWorker.specialties
-                ?.split(',')
-                .includes(s.category)
-            )
-            .map(s => s.category)
-        ),
-      ]
+    ? [...new Set(
+        services
+          .filter(s =>
+            selWorker.specialties?.split(',').includes(s.category)
+          )
+          .map(s => s.category)
+      )]
     : Object.keys(CATEGORY_LABELS)
 
   const filteredServices = services.filter(s => {
     const workerMatch =
       !selWorker ||
-      selWorker.specialties
-        ?.split(',')
-        .includes(s.category)
+      selWorker.specialties?.split(',').includes(s.category)
 
     const catMatch =
-      selCat === 'all' ||
-      s.category === selCat
+      selCat === 'all' || s.category === selCat
 
     return workerMatch && catMatch
   })
 
-  const toggleService = svc => {
+  const toggleService = (svc) => {
     setSelServices(prev => {
       const exists = prev.find(s => s.id === svc.id)
 
@@ -194,8 +157,7 @@ export default function ClientPortal() {
   }
 
   const totalPrice = selServices.reduce(
-    (sum, s) =>
-      sum + applyDiscount(s.price, discount),
+    (sum, s) => sum + applyDiscount(s.price, discount),
     0
   )
 
@@ -220,19 +182,16 @@ export default function ClientPortal() {
     setSubmitting(true)
 
     try {
-      const clientRes = await fetch(
-        `${BACKEND}/clients/portal`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: form.name,
-            phone: form.phone,
-          }),
-        }
-      )
+      const clientRes = await fetch(`${BACKEND}/clients/portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+        }),
+      })
 
       const client = await clientRes.json()
 
@@ -241,22 +200,19 @@ export default function ClientPortal() {
       }
 
       for (const svc of selServices) {
-        const apptRes = await fetch(
-          `${BACKEND}/appointments/portal`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              clientId: client.id,
-              serviceId: svc.id,
-              workerId: selWorker.id,
-              date: selDate,
-              timeSlot: selSlot,
-            }),
-          }
-        )
+        const apptRes = await fetch(`${BACKEND}/appointments/portal`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            clientId: client.id,
+            serviceId: svc.id,
+            workerId: selWorker.id,
+            date: selDate,
+            timeSlot: selSlot,
+          }),
+        })
 
         const appt = await apptRes.json()
 
@@ -271,8 +227,7 @@ export default function ClientPortal() {
 
     } catch (err) {
       toast.error(
-        err.message ||
-        'Ocurrió un error, intenta nuevamente'
+        err.message || 'Ocurrió un error, intenta nuevamente'
       )
     } finally {
       setSubmitting(false)
@@ -282,6 +237,7 @@ export default function ClientPortal() {
   if (done) {
     return (
       <div className="text-center py-16 px-4">
+
         <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
           <span className="text-emerald-500 text-3xl">✓</span>
         </div>
@@ -301,6 +257,24 @@ export default function ClientPortal() {
         <p className="text-sm text-gray-500 mb-6">
           {selDate} a las {selSlot} hrs
         </p>
+
+        <button
+          onClick={() => {
+            setDone(false)
+            setStep(1)
+            setSelWorker(null)
+            setSelServices([])
+            setSelSlot(null)
+            setSelDate('')
+            setForm({
+              name: '',
+              phone: '',
+            })
+          }}
+          className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-6 py-3 rounded-xl font-medium"
+        >
+          Agendar otra cita
+        </button>
       </div>
     )
   }
@@ -308,27 +282,10 @@ export default function ClientPortal() {
   return (
     <div className="space-y-4 max-w-xl mx-auto">
 
-      {discount && (
-        <div className="flex items-center gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100">
-          <span className="text-amber-500 text-lg">🏷️</span>
-
-          <div>
-            <p className="text-sm font-medium text-amber-800">
-              {discount.label}
-            </p>
-
-            <p className="text-xs text-amber-600">
-              {discount.type === 'percent'
-                ? `${discount.value}% de descuento aplicado`
-                : `$${Number(discount.value).toLocaleString('es-CL')} de descuento`}
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center gap-2">
         {['Profesional','Servicios','Fecha y hora','Tus datos'].map((label, i) => (
           <div key={label} className="flex items-center gap-1.5 flex-1">
+
             <StepDot
               n={i + 1}
               active={step === i + 1}
@@ -354,6 +311,69 @@ export default function ClientPortal() {
         ))}
       </div>
 
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+
+        <div className="space-y-2">
+
+          {workers.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-4">
+              Cargando profesionales...
+            </p>
+          ) : (
+            workers.map(w => {
+
+              const cats = w.specialties
+                ?.split(',')
+                .map(c => CATEGORY_LABELS[c])
+                .filter(Boolean)
+                .join(', ')
+
+              const isSelected = selWorker?.id === w.id
+
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => {
+                    setSelWorker(w)
+                    setSelServices([])
+                    setSelCat('all')
+                    setStep(2)
+                  }}
+                  className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'border-rose-300 bg-rose-50'
+                      : 'border-gray-100 hover:border-rose-200'
+                  }`}
+                >
+
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-rose-100 text-rose-600">
+                    {w.name
+                      .split(' ')
+                      .map(n => n[0])
+                      .join('')
+                      .slice(0,2)}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">
+                      {w.name}
+                    </p>
+
+                    <p className="text-xs text-gray-400 truncate">
+                      {cats}
+                    </p>
+                  </div>
+
+                  {isSelected && (
+                    <span className="text-rose-400 text-lg">✓</span>
+                  )}
+                </button>
+              )
+            })
+          )}
+
+        </div>
+      </div>
     </div>
   )
 }
