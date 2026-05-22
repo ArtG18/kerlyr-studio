@@ -24,11 +24,9 @@ const BACKEND = (
 
 function applyDiscount(price, discount) {
   if (!discount) return price
-
   if (discount.type === 'percent') {
     return Math.round(price * (1 - discount.value / 100))
   }
-
   return Math.max(0, price - discount.value)
 }
 
@@ -94,9 +92,7 @@ export default function ClientPortal() {
     fetch(`${BACKEND}/discounts/active`)
       .then(async r => {
         if (!r.ok) return null
-
         const text = await r.text()
-
         try {
           return JSON.parse(text)
         } catch {
@@ -127,7 +123,7 @@ export default function ClientPortal() {
     ? [...new Set(
         services
           .filter(s =>
-            selWorker.specialties?.split(',').includes(s.category)
+            selWorker.specialties?.split(',').map(c => c.trim().toLowerCase()).includes(s.category?.trim().toLowerCase())
           )
           .map(s => s.category)
       )]
@@ -136,7 +132,7 @@ export default function ClientPortal() {
   const filteredServices = services.filter(s => {
     const workerMatch =
       !selWorker ||
-      selWorker.specialties?.split(',').includes(s.category)
+      selWorker.specialties?.split(',').map(c => c.trim().toLowerCase()).includes(s.category?.trim().toLowerCase())
 
     const catMatch =
       selCat === 'all' || s.category === selCat
@@ -147,11 +143,9 @@ export default function ClientPortal() {
   const toggleService = (svc) => {
     setSelServices(prev => {
       const exists = prev.find(s => s.id === svc.id)
-
       if (exists) {
         return prev.filter(s => s.id !== svc.id)
       }
-
       return [...prev, svc]
     })
   }
@@ -222,7 +216,6 @@ export default function ClientPortal() {
       }
 
       toast.success('Cita reservada correctamente ✨')
-
       setDone(true)
 
     } catch (err) {
@@ -237,7 +230,6 @@ export default function ClientPortal() {
   if (done) {
     return (
       <div className="text-center py-16 px-4">
-
         <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
           <span className="text-emerald-500 text-3xl">✓</span>
         </div>
@@ -281,17 +273,29 @@ export default function ClientPortal() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto">
+      
+      {/* Descuento activo */}
+      {discount && (
+        <div className="flex items-center gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100">
+          <span className="text-amber-500 text-lg">🏷️</span>
+          <div>
+            <p className="text-sm font-medium text-amber-800">{discount.label}</p>
+            <p className="text-xs text-amber-600">
+              {discount.type === 'percent' ? `${discount.value}% de descuento aplicado` : `$${Number(discount.value).toLocaleString('es-CL')} de descuento`}
+            </p>
+          </div>
+        </div>
+      )}
 
+      {/* Indicador de Pasos (Steps) */}
       <div className="flex items-center gap-2">
         {['Profesional','Servicios','Fecha y hora','Tus datos'].map((label, i) => (
           <div key={label} className="flex items-center gap-1.5 flex-1">
-
             <StepDot
               n={i + 1}
               active={step === i + 1}
               done={step > i + 1}
             />
-
             <span
               className={`text-xs hidden sm:block truncate ${
                 step === i + 1
@@ -303,7 +307,6 @@ export default function ClientPortal() {
             >
               {label}
             </span>
-
             {i < 3 && (
               <div className="flex-1 h-px bg-gray-100" />
             )}
@@ -311,20 +314,21 @@ export default function ClientPortal() {
         ))}
       </div>
 
+      {/* PASO 1 — Profesional */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5">
-
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          <span className="text-rose-400 mr-1.5">1.</span>Elige la profesional
+        </p>
         <div className="space-y-2">
-
           {workers.length === 0 ? (
             <p className="text-xs text-gray-400 text-center py-4">
               Cargando profesionales...
             </p>
           ) : (
             workers.map(w => {
-
               const cats = w.specialties
                 ?.split(',')
-                .map(c => CATEGORY_LABELS[c])
+                .map(c => CATEGORY_LABELS[c.trim().toLowerCase()] || c.trim())
                 .filter(Boolean)
                 .join(', ')
 
@@ -345,20 +349,14 @@ export default function ClientPortal() {
                       : 'border-gray-100 hover:border-rose-200'
                   }`}
                 >
-
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-rose-100 text-rose-600">
-                    {w.name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .slice(0,2)}
+                    {w.name ? w.name.split(' ').map(n => n[0]).join('').slice(0,2) : '??'}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800">
                       {w.name}
                     </p>
-
                     <p className="text-xs text-gray-400 truncate">
                       {cats}
                     </p>
@@ -371,9 +369,150 @@ export default function ClientPortal() {
               )
             })
           )}
-
         </div>
       </div>
+
+      {/* PASO 2 — Servicios (Múltiple) */}
+      {step >= 2 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            <span className="text-rose-400 mr-1.5">2.</span> Elige los servicios <span className="text-xs font-normal text-gray-400 ml-2">Puedes seleccionar varios</span>
+          </p>
+          
+          {/* Tabs de categoría */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <button onClick={() => setSelCat('all')} className={`text-xs px-3 py-1 rounded-full border transition-all ${selCat === 'all' ? 'bg-rose-50 text-rose-500 border-rose-200 font-medium' : 'border-gray-200 text-gray-500'}`}>
+              Todos
+            </button>
+            {availableCats.map(cat => (
+              <button key={cat} onClick={() => setSelCat(cat)} className={`text-xs px-3 py-1 rounded-full border transition-all ${selCat === cat ? 'bg-rose-50 text-rose-500 border-rose-200 font-medium' : 'border-gray-200 text-gray-500'}`}>
+                {CATEGORY_LABELS[cat] || cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Lista de servicios */}
+          <div className="space-y-1.5 max-h-60 overflow-y-auto">
+            {filteredServices.map(svc => {
+              const discounted = applyDiscount(svc.price, discount)
+              const isSelected = selServices.find(s => s.id === svc.id)
+              return (
+                <button key={svc.id} onClick={() => { toggleService(svc); setStep(Math.max(step, 2)) }} className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${isSelected ? 'border-rose-300 bg-rose-50' : 'border-gray-100 hover:border-rose-200'}`}>
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected ? 'bg-rose-400 border-rose-400' : 'border-gray-300'}`}>
+                    {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">{svc.name}</p>
+                    {svc.detail && <p className="text-xs text-gray-400">{svc.detail}</p>}
+                    <p className="text-[10px] text-gray-300">{svc.duration} min</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    {discounted !== svc.price ? (
+                      <>
+                        <p className="text-xs line-through text-gray-300">${svc.price.toLocaleString('es-CL')}</p>
+                        <p className="text-sm font-semibold text-emerald-600">${discounted.toLocaleString('es-CL')}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-700">${svc.price.toLocaleString('es-CL')}</p>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Resumen selección */}
+          {selServices.length > 0 && (
+            <div className="mt-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-rose-600">{selServices.length} servicio{selServices.length > 1 ? 's' : ''} seleccionado{selServices.length > 1 ? 's' : ''}</p>
+                <p className="text-xs font-semibold text-rose-600">${totalPrice.toLocaleString('es-CL')} · {totalDuration} min</p>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {selServices.map(s => (
+                  <span key={s.id} className="text-[10px] bg-white text-rose-500 px-2 py-0.5 rounded-full border border-rose-100">
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+              <button onClick={() => setStep(Math.max(step, 3))} className="w-full bg-rose-400 text-white text-xs py-2 rounded-lg font-medium">
+                Continuar →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PASO 3 — Fecha y hora */}
+      {step >= 3 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            <span className="text-rose-400 mr-1.5">3.</span>Fecha y hora
+          </p>
+          <div className="mb-4">
+            <label className="text-xs text-gray-500 mb-1.5 block">Selecciona una fecha</label>
+            <input type="date" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300" min={new Date().toISOString().split('T')[0]} value={selDate} onChange={e => { setSelDate(e.target.value); setSelSlot(null); setStep(Math.max(step, 3)) }} />
+          </div>
+          {selDate && (
+            <>
+              {loadingSlots ? (
+                <p className="text-xs text-gray-400 text-center py-4">Cargando horarios disponibles...</p>
+              ) : slots.length === 0 ? (
+                <p className="text-xs text-red-400 bg-red-50 rounded-lg p-3 text-center">
+                  No hay horarios disponibles para {selWorker?.name?.split(' ')[0]} en esta fecha.
+                </p>
+              ) : (
+                <>
+                  <label className="text-xs text-gray-500 mb-1.5 block">Horarios disponibles</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {slots.map(slot => (
+                      <button key={slot} onClick={() => { setSelSlot(slot); setStep(Math.max(step, 4)) }} className={`py-2 rounded-xl text-xs font-medium border transition-all ${selSlot === slot ? 'bg-rose-400 text-white border-rose-400' : 'border-gray-200 text-gray-700 hover:border-rose-300 hover:bg-rose-50'}`}>
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* PASO 4 — Datos */}
+      {step >= 4 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            <span className="text-rose-400 mr-1.5">4.</span>Tus datos
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-gray-500 mb-1.5 block">Nombre completo</label>
+              <input className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300" type="text" placeholder="Tu nombre" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1.5 block">WhatsApp</label>
+              <input className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:border-rose-300" type="tel" placeholder="+56 9 ..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+          </div>
+
+          {/* Resumen final */}
+          {selServices.length > 0 && selSlot && (
+            <div className="mt-4 p-4 bg-rose-50 rounded-xl border border-rose-100 space-y-1.5 text-xs">
+              <p className="font-semibold text-rose-500 mb-2">Resumen de tu cita</p>
+              <p className="text-gray-600">👤 {selWorker?.name}</p>
+              <p className="text-gray-600">✨ {selServices.map(s => s.name).join(', ')}</p>
+              <p className="text-gray-600">📅 {selDate} a las {selSlot} hrs</p>
+              <p className="text-gray-600">⏱️ {totalDuration} min en total</p>
+              <p className="font-semibold text-rose-500">💰 Total: ${totalPrice.toLocaleString('es-CL')}</p>
+            </div>
+          )}
+
+          <button onClick={handleSubmit} disabled={submitting || !form.name || !form.phone} className="w-full bg-gradient-to-r from-rose-400 to-pink-500 text-white py-3 rounded-xl font-semibold mt-4 disabled:opacity-40 hover:scale-105 transition-all shadow-md">
+            {submitting ? 'Reservando...' : '💅 Confirmar cita'}
+          </button>
+        </div>
+      )}
+
     </div>
   )
 }
