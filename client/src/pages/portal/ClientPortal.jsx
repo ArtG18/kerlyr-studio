@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 const CATEGORY_LABELS = {
-  manicure:    'Manicure',
-  kapping:     'Kapping',
+  manicure: 'Manicure',
+  kapping: 'Kapping',
   extensiones: 'Extensiones',
-  pedicure:    'Pedicure',
-  pestanas:    'Pestañas',
-  cejas:       'Cejas',
-  depilacion:  'Depilación',
+  pedicure: 'Pedicure',
+  pestanas: 'Pestañas',
+  cejas: 'Cejas',
+  depilacion: 'Depilación',
 }
 
 const ALL_SLOTS = [
@@ -17,18 +17,33 @@ const ALL_SLOTS = [
   '16:00','16:30','17:00','17:30','18:00','18:30',
 ]
 
-const BACKEND = (import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com').replace(/\/$/, '')
+const BACKEND = (
+  import.meta.env.VITE_API_URL ||
+  'https://kerlyr-studio-server.onrender.com'
+).replace(/\/$/, '')
 
 function applyDiscount(price, discount) {
   if (!discount) return price
-  if (discount.type === 'percent') return Math.round(price * (1 - discount.value / 100))
+
+  if (discount.type === 'percent') {
+    return Math.round(price * (1 - discount.value / 100))
+  }
+
   return Math.max(0, price - discount.value)
 }
 
 function StepDot({ n, active, done }) {
   return (
-    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all
-      ${done ? 'bg-emerald-500 text-white' : active ? 'bg-rose-400 text-white' : 'bg-gray-100 text-gray-400'}`}>
+    <div
+      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-all
+      ${
+        done
+          ? 'bg-emerald-500 text-white'
+          : active
+          ? 'bg-rose-400 text-white'
+          : 'bg-gray-100 text-gray-400'
+      }`}
+    >
       {done ? '✓' : n}
     </div>
   )
@@ -37,35 +52,77 @@ function StepDot({ n, active, done }) {
 export default function ClientPortal() {
   const [step, setStep] = useState(1)
 
-  const [workers,   setWorkers]   = useState([])
-  const [services,  setServices]  = useState([])
-  const [discount,  setDiscount]  = useState(null)
-  const [slots,     setSlots]     = useState([])
+  const [workers, setWorkers] = useState([])
+  const [services, setServices] = useState([])
+  const [discount, setDiscount] = useState(null)
+  const [slots, setSlots] = useState([])
 
-  const [selWorker,   setSelWorker]   = useState(null)
+  const [selWorker, setSelWorker] = useState(null)
   const [selServices, setSelServices] = useState([])
-  const [selCat,      setSelCat]      = useState('all')
-  const [selDate,     setSelDate]     = useState('')
-  const [selSlot,     setSelSlot]     = useState(null)
-  const [form,        setForm]        = useState({ name: '', phone: '' })
+  const [selCat, setSelCat] = useState('all')
+  const [selDate, setSelDate] = useState('')
+  const [selSlot, setSelSlot] = useState(null)
+
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+  })
 
   const [loadingSlots, setLoadingSlots] = useState(false)
-  const [submitting,   setSubmitting]   = useState(false)
-  const [done,         setDone]         = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [done, setDone] = useState(false)
 
   useEffect(() => {
     fetch(`${BACKEND}/workers`)
-      .then(r => r.json())
-      .then(data => setWorkers(Array.isArray(data) ? data.filter(w => w.available) : []))
+      .then(async r => {
+        if (!r.ok) return []
+
+        const text = await r.text()
+
+        try {
+          return JSON.parse(text)
+        } catch {
+          return []
+        }
+      })
+      .then(data =>
+        setWorkers(
+          Array.isArray(data)
+            ? data.filter(w => w.available)
+            : []
+        )
+      )
       .catch(() => setWorkers([]))
 
     fetch(`${BACKEND}/services`)
-      .then(r => r.json())
-      .then(data => setServices(Array.isArray(data) ? data : []))
+      .then(async r => {
+        if (!r.ok) return []
+
+        const text = await r.text()
+
+        try {
+          return JSON.parse(text)
+        } catch {
+          return []
+        }
+      })
+      .then(data =>
+        setServices(Array.isArray(data) ? data : [])
+      )
       .catch(() => setServices([]))
 
     fetch(`${BACKEND}/discounts/active`)
-      .then(r => r.json())
+      .then(async r => {
+        if (!r.ok) return null
+
+        const text = await r.text()
+
+        try {
+          return JSON.parse(text)
+        } catch {
+          return null
+        }
+      })
       .then(data => setDiscount(data || null))
       .catch(() => setDiscount(null))
   }, [])
@@ -78,28 +135,53 @@ export default function ClientPortal() {
     setSelSlot(null)
 
     fetch(`${BACKEND}/workers/${selWorker.id}/slots?date=${selDate}`)
-      .then(r => r.json())
-      .then(data => setSlots(data.availableSlots || ALL_SLOTS))
+      .then(async r => {
+        if (!r.ok) return { availableSlots: ALL_SLOTS }
+
+        const text = await r.text()
+
+        try {
+          return JSON.parse(text)
+        } catch {
+          return { availableSlots: ALL_SLOTS }
+        }
+      })
+      .then(data =>
+        setSlots(data.availableSlots || ALL_SLOTS)
+      )
       .catch(() => setSlots(ALL_SLOTS))
       .finally(() => setLoadingSlots(false))
   }, [selWorker, selDate])
 
   const availableCats = selWorker
-    ? [...new Set(
-        services
-          .filter(s => selWorker.specialties?.split(',').includes(s.category))
-          .map(s => s.category)
-      )]
+    ? [
+        ...new Set(
+          services
+            .filter(s =>
+              selWorker.specialties
+                ?.split(',')
+                .includes(s.category)
+            )
+            .map(s => s.category)
+        ),
+      ]
     : Object.keys(CATEGORY_LABELS)
 
   const filteredServices = services.filter(s => {
-    const workerMatch = !selWorker || selWorker.specialties?.split(',').includes(s.category)
-    const catMatch    = selCat === 'all' || s.category === selCat
+    const workerMatch =
+      !selWorker ||
+      selWorker.specialties
+        ?.split(',')
+        .includes(s.category)
+
+    const catMatch =
+      selCat === 'all' ||
+      s.category === selCat
 
     return workerMatch && catMatch
   })
 
-  const toggleService = (svc) => {
+  const toggleService = svc => {
     setSelServices(prev => {
       const exists = prev.find(s => s.id === svc.id)
 
@@ -112,7 +194,8 @@ export default function ClientPortal() {
   }
 
   const totalPrice = selServices.reduce(
-    (sum, s) => sum + applyDiscount(s.price, discount),
+    (sum, s) =>
+      sum + applyDiscount(s.price, discount),
     0
   )
 
@@ -137,16 +220,19 @@ export default function ClientPortal() {
     setSubmitting(true)
 
     try {
-      const clientRes = await fetch(`${BACKEND}/clients/portal`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: form.name,
-          phone: form.phone
-        }),
-      })
+      const clientRes = await fetch(
+        `${BACKEND}/clients/portal`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: form.name,
+            phone: form.phone,
+          }),
+        }
+      )
 
       const client = await clientRes.json()
 
@@ -155,19 +241,22 @@ export default function ClientPortal() {
       }
 
       for (const svc of selServices) {
-        const apptRes = await fetch(`${BACKEND}/appointments/portal`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            clientId:  client.id,
-            serviceId: svc.id,
-            workerId:  selWorker.id,
-            date:      selDate,
-            timeSlot:  selSlot,
-          }),
-        })
+        const apptRes = await fetch(
+          `${BACKEND}/appointments/portal`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              clientId: client.id,
+              serviceId: svc.id,
+              workerId: selWorker.id,
+              date: selDate,
+              timeSlot: selSlot,
+            }),
+          }
+        )
 
         const appt = await apptRes.json()
 
@@ -181,7 +270,10 @@ export default function ClientPortal() {
       setDone(true)
 
     } catch (err) {
-      toast.error(err.message || 'Ocurrió un error, intenta nuevamente')
+      toast.error(
+        err.message ||
+        'Ocurrió un error, intenta nuevamente'
+      )
     } finally {
       setSubmitting(false)
     }
@@ -209,37 +301,59 @@ export default function ClientPortal() {
         <p className="text-sm text-gray-500 mb-6">
           {selDate} a las {selSlot} hrs
         </p>
-
-        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 max-w-sm mx-auto mb-6">
-          <p className="text-xs text-emerald-700">
-            📱 Recibirás una confirmación por WhatsApp al {form.phone}
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            setDone(false)
-            setStep(1)
-            setSelWorker(null)
-            setSelServices([])
-            setSelSlot(null)
-            setSelDate('')
-            setForm({
-              name: '',
-              phone: ''
-            })
-          }}
-          className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-6 py-3 rounded-xl font-medium"
-        >
-          Agendar otra cita
-        </button>
       </div>
     )
   }
 
   return (
     <div className="space-y-4 max-w-xl mx-auto">
-      {/* resto del JSX igual */}
+
+      {discount && (
+        <div className="flex items-center gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100">
+          <span className="text-amber-500 text-lg">🏷️</span>
+
+          <div>
+            <p className="text-sm font-medium text-amber-800">
+              {discount.label}
+            </p>
+
+            <p className="text-xs text-amber-600">
+              {discount.type === 'percent'
+                ? `${discount.value}% de descuento aplicado`
+                : `$${Number(discount.value).toLocaleString('es-CL')} de descuento`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        {['Profesional','Servicios','Fecha y hora','Tus datos'].map((label, i) => (
+          <div key={label} className="flex items-center gap-1.5 flex-1">
+            <StepDot
+              n={i + 1}
+              active={step === i + 1}
+              done={step > i + 1}
+            />
+
+            <span
+              className={`text-xs hidden sm:block truncate ${
+                step === i + 1
+                  ? 'text-rose-500 font-medium'
+                  : step > i + 1
+                  ? 'text-emerald-600'
+                  : 'text-gray-300'
+              }`}
+            >
+              {label}
+            </span>
+
+            {i < 3 && (
+              <div className="flex-1 h-px bg-gray-100" />
+            )}
+          </div>
+        ))}
+      </div>
+
     </div>
   )
 }
