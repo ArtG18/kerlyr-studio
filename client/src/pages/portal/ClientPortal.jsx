@@ -103,7 +103,6 @@ export default function ClientPortal() {
       .catch(() => setDiscount(null))
   }, [])
 
-<<<<<<< HEAD
   useEffect(() => {
     if (!selWorker || !selDate) return
 
@@ -148,7 +147,9 @@ export default function ClientPortal() {
         return prev.filter(s => s.id !== svc.id)
       }
       return [...prev, svc]
-=======
+    })
+  }
+  
   // Cargar slots cuando cambia trabajadora o fecha
 useEffect(() => {
   if (!selWorker || !selDate) return
@@ -171,7 +172,6 @@ useEffect(() => {
         })
       }
       setSlots(available)
->>>>>>> b6ad3cc (fix: no permitir agendar en horas pasadas)
     })
     .catch(() => {
       // Fallback con filtro igual
