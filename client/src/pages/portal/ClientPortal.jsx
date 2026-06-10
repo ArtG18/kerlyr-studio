@@ -103,6 +103,7 @@ export default function ClientPortal() {
       .catch(() => setDiscount(null))
   }, [])
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!selWorker || !selDate) return
 
@@ -147,8 +148,46 @@ export default function ClientPortal() {
         return prev.filter(s => s.id !== svc.id)
       }
       return [...prev, svc]
+=======
+  // Cargar slots cuando cambia trabajadora o fecha
+useEffect(() => {
+  if (!selWorker || !selDate) return
+  setLoadingSlots(true)
+  setSlots([])
+  setSelSlot(null)
+  fetch(`${BACKEND}/workers/${selWorker.id}/slots?date=${selDate}`)
+    .then(r => r.json())
+    .then(data => {
+      let available = data.availableSlots || ALL_SLOTS
+      // Filtrar horas pasadas si es hoy
+      const today = new Date().toISOString().split('T')[0]
+      if (selDate === today) {
+        const now = new Date()
+        const currentHour = now.getHours()
+        const currentMin  = now.getMinutes()
+        available = available.filter(slot => {
+          const [h, m] = slot.split(':').map(Number)
+          return h > currentHour || (h === currentHour && m > currentMin)
+        })
+      }
+      setSlots(available)
+>>>>>>> b6ad3cc (fix: no permitir agendar en horas pasadas)
     })
-  }
+    .catch(() => {
+      // Fallback con filtro igual
+      const today = new Date().toISOString().split('T')[0]
+      let slots = ALL_SLOTS
+      if (selDate === today) {
+        const now = new Date()
+        slots = ALL_SLOTS.filter(slot => {
+          const [h, m] = slot.split(':').map(Number)
+          return h > now.getHours() || (h === now.getHours() && m > now.getMinutes())
+        })
+      }
+      setSlots(slots)
+    })
+    .finally(() => setLoadingSlots(false))
+}, [selWorker, selDate])
 
   const totalPrice = selServices.reduce(
     (sum, s) => sum + applyDiscount(s.price, discount),

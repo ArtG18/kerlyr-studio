@@ -29,6 +29,14 @@ router.post('/', async (req, res) => {
       })
     }
 
+    const now = new Date()
+    const apptDateTime = new Date(`${date}T${timeSlot}:00`)
+      if (apptDateTime <= now) {
+        return res.status(400).json({
+         error: 'No puedes agendar una cita en una hora que ya pasó.'
+      })
+    }
+
     const clientConflict = await prisma.appointment.findFirst({
       where: {
         clientId: Number(clientId),
