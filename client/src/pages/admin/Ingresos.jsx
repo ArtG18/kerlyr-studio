@@ -28,7 +28,7 @@ const METODOS_PAGO = ["Efectivo", "Transferencia", "Tarjeta"];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 const hoy = () => new Date().toISOString().slice(0, 10);
-const fmt = (n) => `S/ ${Number(n).toFixed(2)}`;
+const fmt = (n) => `$${Math.round(Number(n)).toLocaleString("es-CL")}`;
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 function useStore(key, init) {
@@ -118,8 +118,8 @@ function ModalSalon({ onClose, onSave }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Monto (S/)</label>
-            <input type="number" min="0" step="0.50" placeholder="0.00" className="input w-full"
+            <label className="text-xs text-gray-500 mb-1 block">Monto ($)</label>
+            <input type="number" min="0" step="500" placeholder="0" className="input w-full"
               value={form.monto} onChange={e => set("monto", e.target.value)} />
           </div>
           <div>
@@ -207,13 +207,13 @@ function ModalCajaVecina({ onClose, onSave }) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Monto operación (S/)</label>
-            <input type="number" min="0" step="0.50" placeholder="0.00" className="input w-full"
+            <label className="text-xs text-gray-500 mb-1 block">Monto operación ($)</label>
+            <input type="number" min="0" step="1000" placeholder="0" className="input w-full"
               value={form.monto} onChange={e => set("monto", e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-gray-500 mb-1 block">Comisión ganada (S/)</label>
-            <input type="number" min="0" step="0.10" placeholder="0.00" className="input w-full"
+            <label className="text-xs text-gray-500 mb-1 block">Comisión ganada ($)</label>
+            <input type="number" min="0" step="50" placeholder="0" className="input w-full"
               value={form.comision} onChange={e => set("comision", e.target.value)} />
           </div>
         </div>
@@ -472,7 +472,7 @@ export default function App() {
             <p className="text-xs text-gray-400">Registro de ingresos</p>
           </div>
           <div className="ml-auto text-right">
-            <div className="text-xs text-gray-400">{new Date().toLocaleDateString("es-PE", { weekday: "short", day: "numeric", month: "short" })}</div>
+            <div className="text-xs text-gray-400">{new Date().toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" })}</div>
           </div>
         </div>
       </div>

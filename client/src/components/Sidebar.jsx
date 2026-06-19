@@ -10,6 +10,7 @@ const NAV = [
       { to: '/admin/services',  icon: 'ti-list',             label: 'Servicios' },
       { to: '/admin/workers',   icon: 'ti-users-group',      label: 'Trabajadoras' },
       { to: '/admin/discounts', icon: 'ti-tag',              label: 'Descuentos' },
+      { to: '/admin/ingresos',  icon: 'ti-cash',             label: 'Ingresos' },
     ]
   },
   {
