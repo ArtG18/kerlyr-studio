@@ -23,6 +23,7 @@ import Reminders   from './pages/admin/Reminders'
 import WhatsApp    from './pages/admin/WhatsApp'
 import SalonInfo   from './pages/admin/SalonInfo'
 import Workers     from './pages/admin/Workers'
+import Ingresos from './pages/admin/Ingresos'
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
               <Route path="whatsapp"  element={<WhatsApp />} />
               <Route path="info"      element={<SalonInfo />} />
               <Route path="workers"   element={<Workers />} />
+              <Route path="ingresos"  element={<Ingresos />} />
             </Route>
 
             {/* Ruta desconocida → home */}
