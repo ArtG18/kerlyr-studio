@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const GALLERY = [
   { src: '/gallery/default.jpg',  label: 'Nail art degradado' },
@@ -30,6 +30,23 @@ export default function Home() {
   const [lightbox,  setLightbox]  = useState(null)
   const [openCat,   setOpenCat]   = useState(null)
   const [priceList, setPriceList] = useState([])
+  const [scrolled,  setScrolled]  = useState(false)
+  const [pulse,     setPulse]     = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 300)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Pulso periódico cada 4s para llamar la atención
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPulse(true)
+      setTimeout(() => setPulse(false), 700)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Cargar precios cuando se abre una categoría
   useEffect(() => {
@@ -358,6 +375,58 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* BOTÓN FLOTANTE AGENDA */}
+      <style>{`
+        @keyframes fab-in {
+          from { opacity: 0; transform: translateY(24px) scale(0.85); }
+          to   { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+        @keyframes fab-pulse {
+          0%   { box-shadow: 0 0 0 0 rgba(251,113,133,0.55); }
+          70%  { box-shadow: 0 0 0 14px rgba(251,113,133,0); }
+          100% { box-shadow: 0 0 0 0 rgba(251,113,133,0); }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .fab-btn {
+          animation: fab-in 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+          background: linear-gradient(110deg, #f43f5e 0%, #ec4899 40%, #f43f5e 60%, #ec4899 100%);
+          background-size: 200% auto;
+          transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease;
+        }
+        .fab-btn:hover {
+          transform: translateY(-3px) scale(1.04);
+          box-shadow: 0 12px 32px rgba(244,63,94,0.45);
+          background-position: right center;
+          animation: fab-in 0.45s cubic-bezier(0.34,1.56,0.64,1) both, shimmer 1.4s linear infinite;
+        }
+        .fab-btn:active { transform: scale(0.97); }
+        .fab-pulse { animation: fab-pulse 0.7s ease-out; }
+      `}</style>
+
+      {scrolled && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+          {/* Etiqueta flotante */}
+          <div className="bg-white text-rose-500 text-[11px] font-semibold px-3 py-1 rounded-full shadow-lg border border-rose-100 animate-bounce">
+            ¡Cupos disponibles! 🌸
+          </div>
+
+          {/* Botón principal */}
+          <button
+            onClick={() => navigate('/portal')}
+            className={`fab-btn ${pulse ? 'fab-pulse' : ''} flex items-center gap-2.5 text-white font-bold text-sm px-5 py-3.5 rounded-2xl shadow-xl shadow-rose-300/50`}
+          >
+            <span className="text-lg leading-none">💅</span>
+            <span className="tracking-wide">Agenda ahora</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* LIGHTBOX */}
       {lightbox && (
