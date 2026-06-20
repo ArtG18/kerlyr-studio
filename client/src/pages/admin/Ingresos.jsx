@@ -1,7 +1,6 @@
-import { useState } from "react";
-
-const COLABORADORAS = ["Yo", "Adri", "Liz", "Yune", "Josi", "Jefa"];
-const SERVICIOS_SALON = ["Manicure sencilla","Manicure con esmaltado semipermanente","Pedicure sencilla","Pedicure con esmaltado semipermanente","Acrílicas","Gel","Nail art","Retiro de acrílicas","Retiro de gel","Reparación de uña","Manicure + Pedicure combo","Otro"];
+import { useState, useEffect } from "react";
+import { useWorkers } from "../../hooks/useWorkers";
+import { useServices } from "../../hooks/useServices";
 const SERVICIOS_CAJA_VECINA = [
   { grupo: "Pagos de servicios", opciones: ["Agua","Luz","Gas","Internet","TV cable","Teléfono fijo","Otro servicio"] },
   { grupo: "Recarga móvil", opciones: ["Recarga móvil"] },
@@ -64,8 +63,10 @@ function Input({ label, children }) {
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 outline-none focus:border-kr-rose focus:ring-1 focus:ring-kr-rose transition-all";
 
 // ── Modal editar / crear ──────────────────────────────────────────────────────
-function ModalSalon({ onClose, onSave, registro }) {
-  const [form, setForm] = useState(registro || { fecha: hoy(), colaboradora: "Yo", servicio: SERVICIOS_SALON[0], monto: "", metodo: "Efectivo", nota: "" });
+function ModalSalon({ onClose, onSave, registro, workers, services }) {
+  const primeraColab = workers.length > 0 ? workers[0].name : "";
+  const primerServicio = services.length > 0 ? services[0].name : "";
+  const [form, setForm] = useState(registro || { fecha: hoy(), colaboradora: primeraColab, servicio: primerServicio, monto: "", metodo: "Efectivo", nota: "" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const guardar = () => {
     if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) { alert("Ingresa un monto válido"); return; }
@@ -81,9 +82,18 @@ function ModalSalon({ onClose, onSave, registro }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Fecha"><input type="date" className={inputCls} value={form.fecha} onChange={e => set("fecha", e.target.value)} /></Input>
-          <Input label="Colaboradora"><select className={inputCls} value={form.colaboradora} onChange={e => set("colaboradora", e.target.value)}>{COLABORADORAS.map(c => <option key={c}>{c}</option>)}</select></Input>
+          <Input label="Colaboradora">
+            <select className={inputCls} value={form.colaboradora} onChange={e => set("colaboradora", e.target.value)}>
+              {workers.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
+            </select>
+          </Input>
         </div>
-        <Input label="Servicio"><select className={inputCls} value={form.servicio} onChange={e => set("servicio", e.target.value)}>{SERVICIOS_SALON.map(s => <option key={s}>{s}</option>)}</select></Input>
+        <Input label="Servicio">
+          <select className={inputCls} value={form.servicio} onChange={e => set("servicio", e.target.value)}>
+            {services.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+            <option value="Otro">Otro</option>
+          </select>
+        </Input>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Monto (CLP)"><input type="number" min="0" step="100" placeholder="0" className={inputCls} value={form.monto} onChange={e => set("monto", e.target.value)} /></Input>
           <Input label="Método de pago"><select className={inputCls} value={form.metodo} onChange={e => set("metodo", e.target.value)}>{METODOS_PAGO.map(m => <option key={m}>{m}</option>)}</select></Input>
@@ -182,10 +192,12 @@ function FilaRegistro({ r, onDelete, onEdit, tipo }) {
 }
 
 // ── Tab Salón ─────────────────────────────────────────────────────────────────
-function TabSalon({ registros, onAdd, onDelete, onEdit }) {
+function TabSalon({ registros, onAdd, onDelete, onEdit, workers, services }) {
   const [filtroColab, setFiltroColab] = useState("Todas");
   const [filtroFecha, setFiltroFecha] = useState("");
   const [modal, setModal] = useState(null); // null | 'new' | registro
+
+  const nombresWorkers = workers.map(w => w.name);
 
   const filtrados = registros.filter(r =>
     (filtroColab === "Todas" || r.colaboradora === filtroColab) &&
@@ -193,7 +205,7 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
   );
   const totalHoy = registros.filter(r => r.fecha === hoy()).reduce((s, r) => s + r.monto, 0);
   const totalGeneral = registros.reduce((s, r) => s + r.monto, 0);
-  const porColaboradora = COLABORADORAS.map(c => ({
+  const porColaboradora = nombresWorkers.map(c => ({
     nombre: c,
     total: registros.filter(r => r.colaboradora === c).reduce((s, r) => s + r.monto, 0),
     count: registros.filter(r => r.colaboradora === c).length,
@@ -206,6 +218,8 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
           registro={modal === "new" ? null : modal}
           onClose={() => setModal(null)}
           onSave={(r) => { modal === "new" ? onAdd(r) : onEdit(r); setModal(null); }}
+          workers={workers}
+          services={services}
         />
       )}
 
@@ -235,7 +249,7 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
         <div className="flex gap-2 flex-wrap items-center mb-2">
           <select className={`${inputCls} flex-1 min-w-0`} value={filtroColab} onChange={e => setFiltroColab(e.target.value)}>
             <option>Todas</option>
-            {COLABORADORAS.map(c => <option key={c}>{c}</option>)}
+            {nombresWorkers.map(c => <option key={c}>{c}</option>)}
           </select>
           <input type="date" className={`${inputCls} flex-1 min-w-0`} value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} />
           {(filtroColab !== "Todas" || filtroFecha) && (
@@ -360,6 +374,9 @@ export default function Ingresos() {
   const [regSalon, setRegSalon] = useStore("salon_registros", []);
   const [regCaja,  setRegCaja]  = useStore("caja_registros",  []);
 
+  const { workers } = useWorkers();
+  const { services } = useServices();
+
   const addSalon  = (r)  => setRegSalon(prev => [...prev, r]);
   const editSalon = (r)  => setRegSalon(prev => prev.map(x => x.id === r.id ? r : x));
   const delSalon  = (id) => setRegSalon(prev => prev.filter(r => r.id !== id));
@@ -385,14 +402,14 @@ export default function Ingresos() {
         <button onClick={() => setTab("caja")}
           className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2
             ${tab === "caja" ? "border-amber-400 text-amber-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
-          🏧 Caja Vecina
+          🟧 Caja Vecina
         </button>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
         {tab === "salon"
-          ? <TabSalon   registros={regSalon} onAdd={addSalon}  onDelete={delSalon}  onEdit={editSalon} />
+          ? <TabSalon   registros={regSalon} onAdd={addSalon}  onDelete={delSalon}  onEdit={editSalon} workers={workers} services={services} />
           : <TabCajaVecina registros={regCaja} onAdd={addCaja} onDelete={delCaja}   onEdit={editCaja}  />
         }
       </div>
