@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { servicesApi } from '../../services/api'
+import { servicesApi } from '../services/api'
 
 export function useServices() {
   const [services, setServices] = useState([])
