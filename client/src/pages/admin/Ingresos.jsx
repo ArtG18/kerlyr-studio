@@ -1,4 +1,3 @@
-cat > /home/claude/kerly-studio/client/src/pages/admin/Ingresos.jsx << 'ENDOFFILE'
 import { useState } from "react";
 
 const COLABORADORAS = ["Yo", "Adri", "Liz", "Yune", "Josi", "Jefa"];
