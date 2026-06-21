@@ -128,20 +128,32 @@ router.patch('/:id/status', auth, async (req, res) => {
       }
     }
 
-    // Si se completa, verificar si la clienta llega a 5 citas completadas → VIP
+    // Si se completa → actualizar tag cliente + crear ingreso automático
     if (status === 'completed') {
       const completedCount = await prisma.appointment.count({
         where: { clientId: appt.clientId, status: 'completed' },
       })
       if (completedCount >= 5) {
-        await prisma.client.update({
-          where: { id: appt.clientId },
-          data: { tag: 'VIP' },
-        })
+        await prisma.client.update({ where: { id: appt.clientId }, data: { tag: 'VIP' } })
       } else if (completedCount >= 3) {
-        await prisma.client.update({
-          where: { id: appt.clientId },
-          data: { tag: 'Frecuente' },
+        await prisma.client.update({ where: { id: appt.clientId }, data: { tag: 'Frecuente' } })
+      }
+
+      // Crear ingreso automático en Salón (evitar duplicados)
+      const yaExiste = await prisma.income.findUnique({ where: { appointmentId: appt.id } })
+      if (!yaExiste) {
+        const fecha = appt.date.toISOString().slice(0, 10) // "YYYY-MM-DD"
+        await prisma.income.create({
+          data: {
+            fecha,
+            colaboradora:  appt.worker?.name || 'Sin asignar',
+            servicio:      appt.service.name,
+            monto:         appt.service.price,
+            metodo:        'Efectivo',
+            nota:          `Auto – ${appt.client.name}`,
+            source:        'appointment',
+            appointmentId: appt.id,
+          },
         })
       }
     }

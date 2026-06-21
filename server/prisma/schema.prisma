@@ -66,6 +66,19 @@ model Appointment {
   createdAt DateTime @default(now())
 }
 
+model Income {
+  id            Int       @id @default(autoincrement())
+  fecha         String    // "YYYY-MM-DD"
+  colaboradora  String
+  servicio      String
+  monto         Int
+  metodo        String    @default("Efectivo")
+  nota          String?
+  source        String    @default("manual")   // "manual" | "appointment"
+  appointmentId Int?      @unique
+  createdAt     DateTime  @default(now())
+}
+
 model Discount {
   id         Int      @id @default(autoincrement())
   label      String

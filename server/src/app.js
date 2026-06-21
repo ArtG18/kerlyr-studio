@@ -16,6 +16,7 @@ const serviceRoutes           = require('./routes/services')
 const discountRoutes          = require('./routes/discounts')
 const authRoutes              = require('./routes/auth')
 const workerRoutes            = require('./routes/workers')
+const incomeRoutes            = require('./routes/incomes')
 
 const app = express()
 
@@ -52,6 +53,7 @@ app.use('/clients', clientRoutes)
 app.use('/services', serviceRoutes)
 app.use('/discounts', discountRoutes)
 app.use('/workers', workerRoutes)
+app.use('/incomes', incomeRoutes)
 
 app.get('/', (_req, res) => {
   res.json({
