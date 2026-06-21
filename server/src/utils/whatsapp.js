@@ -1,12 +1,3 @@
-/**
- * Servicio de WhatsApp Business (Meta Cloud API)
- *
- * Para activar:
- * 1. Crea una app en Meta for Developers (https://developers.facebook.com)
- * 2. Agrega WHATSAPP_TOKEN y WHATSAPP_PHONE_NUMBER_ID al .env
- * 3. Las funciones de abajo enviarán mensajes reales
- */
-
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID
 const TOKEN           = process.env.WHATSAPP_TOKEN
 

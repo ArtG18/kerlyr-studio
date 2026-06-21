@@ -1,5 +1,6 @@
 const express = require('express')
 const { PrismaClient } = require('@prisma/client')
+const { sendMessage, confirmationMessage } = require('../utils/whatsapp')
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -64,6 +65,20 @@ router.post('/', async (req, res) => {
     })
 
     res.status(201).json(appointment)
+
+    // WhatsApp: confirmación de cita agendada (pendiente de confirmar)
+    try {
+      const { client, service, worker } = appointment
+      const fechaFormato = new Date(date).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+      if (client.phone) {
+        await sendMessage(
+          client.phone,
+          confirmationMessage(client.name, fechaFormato, timeSlot, service.name)
+        )
+      }
+    } catch (e) {
+      console.error('[WhatsApp] Error enviando confirmación:', e.message)
+    }
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

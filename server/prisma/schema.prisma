@@ -62,8 +62,10 @@ model Appointment {
   workerId  Int?
   worker    Worker?  @relation(fields: [workerId], references: [id])
 
-  notes     String?
-  createdAt DateTime @default(now())
+  notes          String?
+  reminder24Sent Boolean  @default(false)
+  reminder2Sent  Boolean  @default(false)
+  createdAt      DateTime @default(now())
 }
 
 model Income {
