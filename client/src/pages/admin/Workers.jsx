@@ -149,7 +149,17 @@ export default function Workers() {
     }
   }
 
-  const toggleAvailability = async (worker) => {
+  const [confirmDelete, setConfirmDelete] = useState(null) // worker id a eliminar
+
+  const deleteWorker = async (id) => {
+    try {
+      await api.delete(`/workers/${id}`)
+      setWorkers(prev => prev.filter(w => w.id !== id))
+      setConfirmDelete(null)
+    } catch {
+      alert('Error al eliminar la trabajadora')
+    }
+  }
     try {
       const { data } = await api.patch(`/workers/${worker.id}/availability`, {
         available: !worker.available,
@@ -228,6 +238,24 @@ export default function Workers() {
                       className="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 hover:bg-blue-100 flex items-center justify-center transition-colors">
                       <i className="ti ti-pencil text-sm" />
                     </button>
+                    {confirmDelete === w.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => deleteWorker(w.id)}
+                          className="text-[10px] bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 font-medium">
+                          Sí, eliminar
+                        </button>
+                        <button onClick={() => setConfirmDelete(null)}
+                          className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-lg hover:bg-gray-200">
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDelete(w.id)}
+                        title="Eliminar trabajadora"
+                        className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors">
+                        <i className="ti ti-trash text-sm" />
+                      </button>
+                    )}
                   </div>
                 </div>
               )

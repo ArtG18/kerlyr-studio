@@ -262,7 +262,7 @@ export default function BookingForm() {
           <div>
             <p className="form-label mb-2">
               2. Elige el servicio
-              {selectedWorker && <span className="ml-2 text-kr-rose font-normal">({selectedWorker.name.split(' ')[0]} · {selectedWorker.specialties.map(s => CATEGORY_LABELS[s]?.label).join(', ')})</span>}
+              {selectedWorker && <span className="ml-2 text-kr-rose font-normal">({selectedWorker.name.split(' ')[0]} · {workerSpecialties.map(s => CATEGORY_LABELS[s]?.label).filter(Boolean).join(', ')})</span>}
             </p>
 
             {!selectedWorker ? (
