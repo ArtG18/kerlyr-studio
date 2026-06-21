@@ -160,8 +160,10 @@ export default function Workers() {
       alert('Error al eliminar la trabajadora')
     }
   }
+
+  const toggleAvailability = async (worker) => {
     try {
-      const { data } = await api.patch(`/workers/${worker.id}/availability`, {
+      const { data } = await api.put(`/workers/${worker.id}`, {
         available: !worker.available,
       })
       setWorkers(prev => prev.map(w => w.id === data.id ? data : w))
