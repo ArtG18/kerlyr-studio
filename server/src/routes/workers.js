@@ -104,4 +104,34 @@ router.patch('/:id/availability', auth, async (req, res) => {
   }
 })
 
+// DELETE /workers/:id — eliminar trabajadora (admin)
+// Si tiene citas futuras pendientes/confirmadas, las cancela primero
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+
+    // Cancelar citas futuras pendientes o confirmadas
+    const now = new Date()
+    await prisma.appointment.updateMany({
+      where: {
+        workerId: id,
+        date: { gte: now },
+        status: { in: ['pending', 'confirmed'] },
+      },
+      data: { status: 'cancelled' },
+    })
+
+    // Desasociar citas históricas (no borrar el historial)
+    await prisma.appointment.updateMany({
+      where: { workerId: id },
+      data: { workerId: null },
+    })
+
+    await prisma.worker.delete({ where: { id } })
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 module.exports = router

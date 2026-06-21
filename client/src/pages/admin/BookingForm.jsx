@@ -1,10 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../context/AppContext'
-import { SERVICES, CATEGORY_LABELS, SALON_INFO, WORKERS, getAvailableSlots } from '../../data/mockData'
+import { useWorkers } from '../../hooks/useWorkers'
+import { useServices } from '../../hooks/useServices'
+import { CATEGORY_LABELS } from '../../data/mockData'
 import { PriceDisplay, TopBar, Avatar } from '../../components/UI'
 
 const CATEGORIES = Object.keys(CATEGORY_LABELS)
+
+// Genera iniciales y color a partir del nombre
+function workerVisuals(name = '') {
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const colors = [
+    { bg: '#f5e8e4', text: '#8b5e52' },
+    { bg: '#EAF3DE', text: '#27500A' },
+    { bg: '#E6F1FB', text: '#0C447C' },
+    { bg: '#F9E79F', text: '#5D4037' },
+    { bg: '#F3E8FF', text: '#6B21A8' },
+    { bg: '#FFE4E6', text: '#9F1239' },
+  ]
+  const idx = name.charCodeAt(0) % colors.length
+  return { initials, color: colors[idx].bg, textColor: colors[idx].text }
+}
 
 // Step indicator
 function Step({ n, label, active, done }) {
@@ -22,29 +39,69 @@ function Step({ n, label, active, done }) {
 export default function BookingForm() {
   const navigate = useNavigate()
   const { applyDiscount, discount, addAppointment } = useApp()
+  const { workers, getSlots } = useWorkers()
+  const { services } = useServices()
 
-  const [step, setStep] = useState(1) // 1: trabajadora  2: servicio  3: horario  4: datos
+  const [step, setStep] = useState(1)
   const [selectedWorker, setSelectedWorker] = useState(null)
   const [selectedServiceId, setSelectedServiceId] = useState(null)
   const [selectedSlot, setSelectedSlot] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
+  const [availableSlots, setAvailableSlots] = useState([])
+  const [loadingSlots, setLoadingSlots] = useState(false)
   const [catFilter, setCatFilter] = useState('all')
   const [form, setForm] = useState({ name: '', phone: '', notes: '' })
   const [saved, setSaved] = useState(false)
   const [slotError, setSlotError] = useState('')
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }))
-  const selectedService = SERVICES.find(s => s.id === selectedServiceId)
-  const availableSlots = selectedWorker ? getAvailableSlots(selectedWorker.id) : []
+  const selectedService = services.find(s => s.id === selectedServiceId)
 
-  const filteredServices = (catFilter === 'all' ? SERVICES : SERVICES.filter(s => s.category === catFilter))
-    .filter(s => !selectedWorker || selectedWorker.specialties.includes(s.category))
+  // Especialidades de la trabajadora seleccionada (campo "specialties" es string CSV en BD)
+  const workerSpecialties = selectedWorker
+    ? (typeof selectedWorker.specialties === 'string'
+        ? selectedWorker.specialties.split(',').map(s => s.trim().toLowerCase())
+        : selectedWorker.specialties)
+    : []
 
-  const handleSelectWorker = (w) => {
+  const filteredServices = services.filter(s =>
+    s.active !== false &&
+    (catFilter === 'all' || s.category === catFilter) &&
+    (!selectedWorker || workerSpecialties.length === 0 || workerSpecialties.includes(s.category))
+  )
+
+  const handleSelectWorker = async (w) => {
     setSelectedWorker(w)
     setSelectedServiceId(null)
     setSelectedSlot(null)
     setSlotError('')
     setStep(2)
+    // Cargar slots disponibles
+    setLoadingSlots(true)
+    try {
+      const data = await getSlots(w.id, selectedDate)
+      setAvailableSlots(data.availableSlots || [])
+    } catch {
+      setAvailableSlots([])
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const handleDateChange = async (date) => {
+    setSelectedDate(date)
+    setSelectedSlot(null)
+    if (selectedWorker) {
+      setLoadingSlots(true)
+      try {
+        const data = await getSlots(selectedWorker.id, date)
+        setAvailableSlots(data.availableSlots || [])
+      } catch {
+        setAvailableSlots([])
+      } finally {
+        setLoadingSlots(false)
+      }
+    }
   }
 
   const handleSelectService = (id) => {
@@ -61,6 +118,7 @@ export default function BookingForm() {
 
   const handleSubmit = () => {
     if (!form.name || !selectedServiceId || !selectedSlot || !selectedWorker) return
+    const visuals = workerVisuals(selectedWorker.name)
     addAppointment({
       clientName: form.name,
       initials: form.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
@@ -71,7 +129,10 @@ export default function BookingForm() {
       service: selectedService?.name || '',
       price: selectedService?.price || 0,
       time: selectedSlot,
+      date: selectedDate,
       endTime: selectedSlot,
+      notes: form.notes,
+      phone: form.phone,
       status: 'pending',
     })
     setSaved(true)
@@ -102,24 +163,22 @@ export default function BookingForm() {
             <div>
               <p className="form-label">1. Elige la profesional</p>
               <div className="space-y-2">
-                {WORKERS.map(w => {
+                {workers.filter(w => w.available !== false).map(w => {
                   const isSelected = selectedWorker?.id === w.id
+                  const visuals = workerVisuals(w.name)
                   return (
                     <button
                       key={w.id}
-                      onClick={() => w.available && handleSelectWorker(w)}
-                      disabled={!w.available}
+                      onClick={() => handleSelectWorker(w)}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                        ${!w.available ? 'opacity-40 cursor-not-allowed border-gray-100 bg-gray-50' : ''}
-                        ${isSelected ? 'border-kr-rose bg-kr-rose-light' : w.available ? 'border-gray-100 hover:border-kr-rose-mid bg-white' : ''}
+                        ${isSelected ? 'border-kr-rose bg-kr-rose-light' : 'border-gray-100 hover:border-kr-rose-mid bg-white'}
                       `}
                     >
-                      <Avatar initials={w.initials} color={w.color} textColor={w.textColor} />
+                      <Avatar initials={visuals.initials} color={visuals.color} textColor={visuals.textColor} />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">{w.name}</p>
                         <p className="text-xs text-gray-400">{w.role}</p>
                       </div>
-                      {!w.available && <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">No disponible hoy</span>}
                       {isSelected && <i className="ti ti-check text-kr-rose text-sm" />}
                     </button>
                   )
@@ -131,10 +190,19 @@ export default function BookingForm() {
             {step >= 3 && selectedWorker && (
               <div>
                 <p className="form-label">3. Elige el horario</p>
-                {availableSlots.length === 0 ? (
+                <input
+                  type="date"
+                  className="form-input mb-3"
+                  value={selectedDate}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={e => handleDateChange(e.target.value)}
+                />
+                {loadingSlots ? (
+                  <p className="text-xs text-gray-400 text-center py-3">Cargando horarios…</p>
+                ) : availableSlots.length === 0 ? (
                   <p className="text-xs text-red-400 bg-red-50 rounded-lg p-3">
                     <i className="ti ti-alert-circle mr-1" />
-                    No hay horarios disponibles para {selectedWorker.name.split(' ')[0]} hoy.
+                    No hay horarios disponibles para {selectedWorker.name.split(' ')[0]} en esta fecha.
                   </p>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
@@ -210,16 +278,19 @@ export default function BookingForm() {
                     className={`text-xs px-3 py-1 rounded-full border transition-all ${catFilter === 'all' ? 'bg-kr-rose-light text-kr-rose-dark border-kr-rose' : 'border-gray-200 text-gray-500'}`}>
                     Todos
                   </button>
-                  {CATEGORIES.filter(cat => selectedWorker.specialties.includes(cat)).map(cat => (
+                  {CATEGORIES.filter(cat => workerSpecialties.includes(cat)).map(cat => (
                     <button key={cat} onClick={() => setCatFilter(cat)}
                       className={`text-xs px-3 py-1 rounded-full border transition-all ${catFilter === cat ? 'bg-kr-rose-light text-kr-rose-dark border-kr-rose' : 'border-gray-200 text-gray-500'}`}>
-                      {CATEGORY_LABELS[cat].label}
+                      {CATEGORY_LABELS[cat]?.label || cat}
                     </button>
                   ))}
                 </div>
 
                 {/* Service list */}
                 <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                  {filteredServices.length === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-4">No hay servicios para esta profesional</p>
+                  )}
                   {filteredServices.map(svc => {
                     const discounted = applyDiscount(svc.price)
                     const isSelected = selectedServiceId === svc.id
