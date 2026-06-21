@@ -96,94 +96,58 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="pt-20 min-h-[90vh] flex items-center bg-gradient-to-br from-rose-50 via-white to-pink-50">
-        <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-          {/* Logo grande */}
-          <div className="flex justify-center mb-6">
-            <img
-              src="/gallery/Logo.jpg"
-              alt="Kerlyr Studio"
-              className="w-28 h-28 rounded-full object-cover shadow-xl border-4 border-white ring-2 ring-rose-100"
-            />
+      <section className="pt-16 min-h-screen flex items-center bg-gradient-to-br from-rose-50 via-white to-pink-50">
+        <div className="w-full max-w-3xl mx-auto px-5 py-10 text-center">
+          <div className="flex justify-center mb-5">
+            <img src="/gallery/Logo.jpg" alt="Kerlyr Studio" className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-xl border-4 border-white ring-2 ring-rose-100" />
           </div>
-
-          <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-4">
-            ✨ Nails · Pestañas · Cejas · Depilación
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-6">
+          <p className="text-[11px] font-semibold tracking-widest uppercase text-rose-400 mb-3">✨ Nails · Pestañas · Cejas · Depilación</p>
+          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 leading-tight mb-5">
             Tu belleza,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">
-              nuestra pasión
-            </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-500">nuestra pasión</span>
           </h1>
-          <p className="text-gray-500 text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
+          <p className="text-gray-500 text-sm sm:text-lg leading-relaxed mb-7 max-w-xl mx-auto">
             En Kerlyr Studio te ofrecemos una experiencia única de cuidado y belleza.
             Desde manicure artístico hasta extensiones profesionales, todo con amor y dedicación.
           </p>
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <button
-              onClick={() => setOpenCat('all')}
-              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors"
-            >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button onClick={() => setOpenCat('all')} className="w-full sm:w-auto bg-rose-50 text-rose-500 hover:bg-rose-100 px-6 py-3 rounded-xl font-medium transition-colors">
               Ver todos los servicios y precios
             </button>
-            <a href="#galeria"
-              className="text-gray-500 hover:text-gray-800 font-medium transition-colors flex items-center gap-2">
+            <a href="#galeria" className="text-gray-500 hover:text-gray-800 font-medium transition-colors flex items-center gap-2">
               Ver galería
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </a>
           </div>
-
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-8 mt-12 pt-8 border-t border-rose-100">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">+500</p>
-              <p className="text-xs text-gray-400">Clientas felices</p>
-            </div>
-            <div className="w-px h-10 bg-rose-100" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">5★</p>
-              <p className="text-xs text-gray-400">Calificación</p>
-            </div>
-            <div className="w-px h-10 bg-rose-100" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">3+</p>
-              <p className="text-xs text-gray-400">Años de experiencia</p>
-            </div>
+          <div className="flex items-center justify-center gap-6 mt-10 pt-6 border-t border-rose-100">
+            <div className="text-center"><p className="text-xl sm:text-2xl font-bold text-gray-900">+500</p><p className="text-xs text-gray-400">Clientas felices</p></div>
+            <div className="w-px h-8 bg-rose-100" />
+            <div className="text-center"><p className="text-xl sm:text-2xl font-bold text-gray-900">5★</p><p className="text-xs text-gray-400">Calificación</p></div>
+            <div className="w-px h-8 bg-rose-100" />
+            <div className="text-center"><p className="text-xl sm:text-2xl font-bold text-gray-900">3+</p><p className="text-xs text-gray-400">Años de experiencia</p></div>
           </div>
         </div>
       </section>
 
       {/* SERVICIOS */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
+      <section className="py-14 bg-white">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center mb-8">
             <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-2">Lo que ofrecemos</p>
-            <h2 className="text-3xl font-bold text-gray-900">Nuestros servicios</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Nuestros servicios</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {SERVICES_PREVIEW.map(svc => (
-              <div key={svc.label}
-                className="group p-6 rounded-2xl border border-rose-100 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-50 transition-all duration-200">
-                <div className="text-3xl mb-3">{svc.icon}</div>
-                <h3 className="text-base font-semibold text-gray-800 mb-1">{svc.label}</h3>
-                <p className="text-sm text-gray-400 mb-4">{svc.desc}</p>
-                <button
-                  onClick={() => setOpenCat(svc.cat)}
-                  className="text-xs text-rose-400 hover:text-rose-600 font-medium transition-colors"
-                >
-                  Ver precios →
-                </button>
+              <div key={svc.label} className="group p-4 sm:p-6 rounded-2xl border border-rose-100 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-50 transition-all duration-200">
+                <div className="text-2xl sm:text-3xl mb-2">{svc.icon}</div>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-1">{svc.label}</h3>
+                <p className="text-xs text-gray-400 mb-3 hidden sm:block">{svc.desc}</p>
+                <button onClick={() => setOpenCat(svc.cat)} className="text-xs text-rose-400 hover:text-rose-600 font-medium transition-colors">Ver precios →</button>
               </div>
             ))}
           </div>
-          <div className="text-center mt-10">
-            <button 
-            onClick={() => setOpenCat('all')}
-              className="bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors"
-            >
+          <div className="text-center mt-8">
+            <button onClick={() => setOpenCat('all')} className="w-full sm:w-auto bg-rose-50 text-rose-500 hover:bg-rose-100 px-8 py-3 rounded-xl font-medium transition-colors">
               Ver todos los servicios y precios
             </button>
           </div>
@@ -241,32 +205,29 @@ export default function Home() {
       )}
 
       {/* ABOUT */}
-      <section className="py-20 bg-gradient-to-br from-rose-50 to-pink-50">
-        <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 gap-16 items-center">
+      <section className="py-14 bg-gradient-to-br from-rose-50 to-pink-50">
+        <div className="max-w-6xl mx-auto px-5 grid grid-cols-1 sm:grid-cols-2 gap-10 items-center">
           <div className="relative">
-            <div className="grid grid-cols-2 gap-3">
-              <img src="/gallery/foto5.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-52 w-full" />
-              <img src="/gallery/foto9.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-52 w-full mt-8" />
-              <img src="/gallery/foto1.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-52 w-full -mt-4" />
-              <img src="/gallery/foto3.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-52 w-full mt-4" />
+            <div className="grid grid-cols-2 gap-2">
+              <img src="/gallery/foto5.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-40 sm:h-52 w-full" />
+              <img src="/gallery/foto9.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-40 sm:h-52 w-full mt-6 sm:mt-8" />
+              <img src="/gallery/foto1.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-40 sm:h-52 w-full -mt-3 sm:-mt-4" />
+              <img src="/gallery/foto3.jpeg" alt="" className="rounded-2xl shadow-lg object-cover object-center h-40 sm:h-52 w-full mt-3 sm:mt-4" />
             </div>
-            <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl p-3 shadow-xl border border-rose-100">
-              <img src="/gallery/Logo.jpg" alt="Kerlyr Studio" className="w-16 h-16 rounded-xl object-cover" />
+            <div className="absolute -bottom-3 -right-2 bg-white rounded-2xl p-2 shadow-xl border border-rose-100">
+              <img src="/gallery/Logo.jpg" alt="Kerlyr Studio" className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover" />
             </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-4">Sobre nosotras</p>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Más que un salón,<br />una experiencia</h2>
-            <p className="text-gray-500 leading-relaxed mb-4">
-              Somos un equipo apasionado por la belleza y el cuidado personal. En Kerlyr Studio
-              cada clienta es especial y merece atención personalizada y de calidad.
+          <div className="mt-6 sm:mt-0">
+            <p className="text-xs font-semibold tracking-widest uppercase text-rose-400 mb-3">Sobre nosotras</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Más que un salón,<br />una experiencia</h2>
+            <p className="text-gray-500 leading-relaxed mb-3 text-sm sm:text-base">
+              Somos un equipo apasionado por la belleza y el cuidado personal. En Kerlyr Studio cada clienta es especial y merece atención personalizada y de calidad.
             </p>
-            <p className="text-gray-500 leading-relaxed mb-8">
-              Trabajamos con los mejores productos del mercado para garantizar resultados
-              duraderos y seguros. Nuestro equipo se capacita constantemente para traerte
-              las últimas tendencias en nail art, pestañas y cejas.
+            <p className="text-gray-500 leading-relaxed mb-6 text-sm sm:text-base">
+              Trabajamos con los mejores productos del mercado para garantizar resultados duraderos y seguros. Nuestro equipo se capacita constantemente para traerte las últimas tendencias en nail art, pestañas y cejas.
             </p>
-            <div className="flex flex-col gap-3 mb-8">
+            <div className="flex flex-col gap-2 mb-6">
               {['Productos de primera calidad','Equipo profesional y capacitado','Ambiente cálido y acogedor','Todos los medios de pago'].map(item => (
                 <div key={item} className="flex items-center gap-3">
                   <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
@@ -276,10 +237,10 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="flex gap-3">
-              <div className="bg-white rounded-xl px-4 py-3 border border-rose-100 text-center"><p className="text-xs text-gray-400">Lun–Vie</p><p className="text-sm font-semibold text-gray-800">10:00–19:00</p></div>
-              <div className="bg-white rounded-xl px-4 py-3 border border-rose-100 text-center"><p className="text-xs text-gray-400">Sábado</p><p className="text-sm font-semibold text-gray-800">10:00–14:00</p></div>
-              <div className="bg-white rounded-xl px-4 py-3 border border-rose-100 text-center"><p className="text-xs text-gray-400">Domingo</p><p className="text-sm font-semibold text-gray-800">Cerrado</p></div>
+            <div className="flex gap-2">
+              <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-rose-100 text-center"><p className="text-[10px] text-gray-400">Lun–Vie</p><p className="text-xs sm:text-sm font-semibold text-gray-800">10:00–19:00</p></div>
+              <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-rose-100 text-center"><p className="text-[10px] text-gray-400">Sábado</p><p className="text-xs sm:text-sm font-semibold text-gray-800">10:00–14:00</p></div>
+              <div className="flex-1 bg-white rounded-xl px-3 py-2 border border-rose-100 text-center"><p className="text-[10px] text-gray-400">Domingo</p><p className="text-xs sm:text-sm font-semibold text-gray-800">Cerrado</p></div>
             </div>
           </div>
         </div>
