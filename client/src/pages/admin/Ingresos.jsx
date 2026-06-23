@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
+import { useWorkers } from "../../hooks/useWorkers";
+import { useServices } from "../../hooks/useServices";
 
-const COLABORADORAS = ["Yo", "Adri", "Liz", "Yune", "Josi", "Jefa"];
-const SERVICIOS_SALON = ["Manicure sencilla","Manicure con esmaltado semipermanente","Pedicure sencilla","Pedicure con esmaltado semipermanente","Acrílicas","Gel","Nail art","Retiro de acrílicas","Retiro de gel","Reparación de uña","Manicure + Pedicure combo","Otro"];
 const SERVICIOS_CAJA_VECINA = [
   { grupo: "Pagos de servicios", opciones: ["Agua","Luz","Gas","Internet","TV cable","Teléfono fijo","Otro servicio"] },
   { grupo: "Recarga móvil", opciones: ["Recarga móvil"] },
@@ -13,18 +13,14 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 const fmt = (n) => `$${Math.round(Number(n)).toLocaleString("es-CL")}`;
 const uid = () => Math.random().toString(36).slice(2, 9);
 
-function useStore(key, init) {
-  const [val, setVal] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(key)) ?? init; }
-    catch { return init; }
-  });
-  const set = (v) => {
-    const next = typeof v === "function" ? v(val) : v;
-    setVal(next);
-    localStorage.setItem(key, JSON.stringify(next));
-  };
-  return [val, set];
-}
+// ── API helper ────────────────────────────────────────────────────────────────
+const API = (import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com').replace(/\/$/, '')
+const token = () => localStorage.getItem('kr_token') || ''
+const apiFetch = (path, opts = {}) =>
+  fetch(`${API}${path}`, {
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+    ...opts,
+  }).then(r => r.json())
 
 // ── UI Atoms ──────────────────────────────────────────────────────────────────
 function Badge({ children, color = "rose" }) {
@@ -63,9 +59,11 @@ function Input({ label, children }) {
 
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white text-gray-800 outline-none focus:border-kr-rose focus:ring-1 focus:ring-kr-rose transition-all";
 
-// ── Modal editar / crear ──────────────────────────────────────────────────────
-function ModalSalon({ onClose, onSave, registro }) {
-  const [form, setForm] = useState(registro || { fecha: hoy(), colaboradora: "Yo", servicio: SERVICIOS_SALON[0], monto: "", metodo: "Efectivo", nota: "" });
+// ── Modal Salón ───────────────────────────────────────────────────────────────
+function ModalSalon({ onClose, onSave, registro, workers, services }) {
+  const primeraColab = workers.length > 0 ? workers[0].name : "";
+  const primerServicio = services.length > 0 ? services[0].name : "";
+  const [form, setForm] = useState(registro || { fecha: hoy(), colaboradora: primeraColab, servicio: primerServicio, monto: "", metodo: "Efectivo", nota: "" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const guardar = () => {
     if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) { alert("Ingresa un monto válido"); return; }
@@ -81,9 +79,18 @@ function ModalSalon({ onClose, onSave, registro }) {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Fecha"><input type="date" className={inputCls} value={form.fecha} onChange={e => set("fecha", e.target.value)} /></Input>
-          <Input label="Colaboradora"><select className={inputCls} value={form.colaboradora} onChange={e => set("colaboradora", e.target.value)}>{COLABORADORAS.map(c => <option key={c}>{c}</option>)}</select></Input>
+          <Input label="Colaboradora">
+            <select className={inputCls} value={form.colaboradora} onChange={e => set("colaboradora", e.target.value)}>
+              {workers.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
+            </select>
+          </Input>
         </div>
-        <Input label="Servicio"><select className={inputCls} value={form.servicio} onChange={e => set("servicio", e.target.value)}>{SERVICIOS_SALON.map(s => <option key={s}>{s}</option>)}</select></Input>
+        <Input label="Servicio">
+          <select className={inputCls} value={form.servicio} onChange={e => set("servicio", e.target.value)}>
+            {services.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+            <option value="Otro">Otro</option>
+          </select>
+        </Input>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Monto (CLP)"><input type="number" min="0" step="100" placeholder="0" className={inputCls} value={form.monto} onChange={e => set("monto", e.target.value)} /></Input>
           <Input label="Método de pago"><select className={inputCls} value={form.metodo} onChange={e => set("metodo", e.target.value)}>{METODOS_PAGO.map(m => <option key={m}>{m}</option>)}</select></Input>
@@ -185,18 +192,19 @@ function FilaRegistro({ r, onDelete, onEdit, tipo }) {
 }
 
 // ── Tab Salón ─────────────────────────────────────────────────────────────────
-function TabSalon({ registros, onAdd, onDelete, onEdit }) {
+function TabSalon({ registros, onAdd, onDelete, onEdit, workers, services }) {
   const [filtroColab, setFiltroColab] = useState("Todas");
   const [filtroFecha, setFiltroFecha] = useState("");
-  const [modal, setModal] = useState(null); // null | 'new' | registro
+  const [modal, setModal] = useState(null);
 
+  const nombresWorkers = workers.map(w => w.name);
   const filtrados = registros.filter(r =>
     (filtroColab === "Todas" || r.colaboradora === filtroColab) &&
     (!filtroFecha || r.fecha === filtroFecha)
   );
   const totalHoy = registros.filter(r => r.fecha === hoy()).reduce((s, r) => s + r.monto, 0);
   const totalGeneral = registros.reduce((s, r) => s + r.monto, 0);
-  const porColaboradora = COLABORADORAS.map(c => ({
+  const porColaboradora = nombresWorkers.map(c => ({
     nombre: c,
     total: registros.filter(r => r.colaboradora === c).reduce((s, r) => s + r.monto, 0),
     count: registros.filter(r => r.colaboradora === c).length,
@@ -209,14 +217,14 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
           registro={modal === "new" ? null : modal}
           onClose={() => setModal(null)}
           onSave={(r) => { modal === "new" ? onAdd(r) : onEdit(r); setModal(null); }}
+          workers={workers}
+          services={services}
         />
       )}
-
       <div className="grid grid-cols-2 gap-2">
         <StatCard label="Total hoy" value={fmt(totalHoy)} color="rose" />
         <StatCard label="Total general" value={fmt(totalGeneral)} color="rose" />
       </div>
-
       {porColaboradora.length > 0 && (
         <Card>
           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Por colaboradora</h4>
@@ -233,12 +241,11 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
           </div>
         </Card>
       )}
-
       <Card>
         <div className="flex gap-2 flex-wrap items-center mb-2">
           <select className={`${inputCls} flex-1 min-w-0`} value={filtroColab} onChange={e => setFiltroColab(e.target.value)}>
             <option>Todas</option>
-            {COLABORADORAS.map(c => <option key={c}>{c}</option>)}
+            {nombresWorkers.map(c => <option key={c}>{c}</option>)}
           </select>
           <input type="date" className={`${inputCls} flex-1 min-w-0`} value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)} />
           {(filtroColab !== "Todas" || filtroFecha) && (
@@ -249,7 +256,6 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
           <p className="text-xs text-gray-500 mb-2">{filtrados.length} registro(s) · <span className="font-semibold text-kr-rose-dark">{fmt(filtrados.reduce((s,r)=>s+r.monto,0))}</span></p>
         )}
       </Card>
-
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-semibold text-gray-700">Registros ({filtrados.length})</h4>
@@ -258,10 +264,7 @@ function TabSalon({ registros, onAdd, onDelete, onEdit }) {
         {filtrados.length === 0
           ? <div className="text-center py-8 text-gray-300 text-sm">Sin registros aún</div>
           : filtrados.slice().reverse().map(r => (
-            <FilaRegistro key={r.id} r={r} tipo="salon"
-              onDelete={onDelete}
-              onEdit={(reg) => setModal(reg)}
-            />
+            <FilaRegistro key={r.id} r={r} tipo="salon" onDelete={onDelete} onEdit={(reg) => setModal(reg)} />
           ))
         }
       </Card>
@@ -298,13 +301,11 @@ function TabCajaVecina({ registros, onAdd, onDelete, onEdit }) {
           onSave={(r) => { modal === "new" ? onAdd(r) : onEdit(r); setModal(null); }}
         />
       )}
-
       <div className="grid grid-cols-3 gap-2">
         <StatCard label="Op. totales"  value={fmt(totalOperaciones)} color="amber" />
         <StatCard label="Comisiones"   value={fmt(totalComisiones)}  color="amber" />
         <StatCard label="Comis. hoy"   value={fmt(comisionesHoy)}    color="amber" />
       </div>
-
       {porGrupo.length > 0 && (
         <Card>
           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Por categoría</h4>
@@ -324,7 +325,6 @@ function TabCajaVecina({ registros, onAdd, onDelete, onEdit }) {
           </div>
         </Card>
       )}
-
       <Card>
         <div className="flex gap-2 flex-wrap items-center mb-2">
           <select className={`${inputCls} flex-1 min-w-0`} value={filtroGrupo} onChange={e => setFiltroGrupo(e.target.value)}>
@@ -337,7 +337,6 @@ function TabCajaVecina({ registros, onAdd, onDelete, onEdit }) {
           )}
         </div>
       </Card>
-
       <Card>
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-semibold text-gray-700">Registros ({filtrados.length})</h4>
@@ -346,10 +345,7 @@ function TabCajaVecina({ registros, onAdd, onDelete, onEdit }) {
         {filtrados.length === 0
           ? <div className="text-center py-8 text-gray-300 text-sm">Sin registros aún</div>
           : filtrados.slice().reverse().map(r => (
-            <FilaRegistro key={r.id} r={r} tipo="caja"
-              onDelete={onDelete}
-              onEdit={(reg) => setModal(reg)}
-            />
+            <FilaRegistro key={r.id} r={r} tipo="caja" onDelete={onDelete} onEdit={(reg) => setModal(reg)} />
           ))
         }
       </Card>
@@ -357,23 +353,15 @@ function TabCajaVecina({ registros, onAdd, onDelete, onEdit }) {
   );
 }
 
-// ── API helper ────────────────────────────────────────────────────────────────
-const API = (import.meta.env.VITE_API_URL || 'https://kerlyr-studio-server.onrender.com').replace(/\/$/, '')
-const token = () => localStorage.getItem('token') || ''
-const apiFetch = (path, opts = {}) =>
-  fetch(`${API}${path}`, {
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-    ...opts,
-  }).then(r => r.json())
-
 // ── App principal ─────────────────────────────────────────────────────────────
 export default function Ingresos() {
   const [tab,      setTab]      = useState("salon");
   const [regSalon, setRegSalon] = useState([]);
   const [regCaja,  setRegCaja]  = useState([]);
   const [loading,  setLoading]  = useState(true);
+  const { workers } = useWorkers();
+  const { services } = useServices();
 
-  // Cargar desde la API
   useEffect(() => {
     Promise.all([
       apiFetch('/incomes?source=salon'),
@@ -384,62 +372,35 @@ export default function Ingresos() {
     }).finally(() => setLoading(false));
   }, []);
 
-  // Salón CRUD
-  const addSalon = async (r) => {
-    const nuevo = await apiFetch('/incomes', { method: 'POST', body: JSON.stringify({ ...r, source: 'manual' }) });
-    setRegSalon(prev => [nuevo, ...prev]);
-  };
-  const editSalon = async (r) => {
-    const updated = await apiFetch(`/incomes/${r.id}`, { method: 'PATCH', body: JSON.stringify(r) });
-    setRegSalon(prev => prev.map(x => x.id === updated.id ? updated : x));
-  };
-  const delSalon = async (id) => {
-    await apiFetch(`/incomes/${id}`, { method: 'DELETE' });
-    setRegSalon(prev => prev.filter(r => r.id !== id));
-  };
+  const addSalon  = async (r) => { const n = await apiFetch('/incomes', { method: 'POST', body: JSON.stringify({ ...r, source: 'manual' }) }); setRegSalon(p => [n, ...p]); };
+  const editSalon = async (r) => { const u = await apiFetch(`/incomes/${r.id}`, { method: 'PATCH', body: JSON.stringify(r) }); setRegSalon(p => p.map(x => x.id === u.id ? u : x)); };
+  const delSalon  = async (id) => { await apiFetch(`/incomes/${id}`, { method: 'DELETE' }); setRegSalon(p => p.filter(r => r.id !== id)); };
 
-  // Caja Vecina CRUD
-  const addCaja = async (r) => {
-    const nuevo = await apiFetch('/incomes', { method: 'POST', body: JSON.stringify({ ...r, source: 'caja' }) });
-    setRegCaja(prev => [nuevo, ...prev]);
-  };
-  const editCaja = async (r) => {
-    const updated = await apiFetch(`/incomes/${r.id}`, { method: 'PATCH', body: JSON.stringify(r) });
-    setRegCaja(prev => prev.map(x => x.id === updated.id ? updated : x));
-  };
-  const delCaja = async (id) => {
-    await apiFetch(`/incomes/${id}`, { method: 'DELETE' });
-    setRegCaja(prev => prev.filter(r => r.id !== id));
-  };
+  const addCaja  = async (r) => { const n = await apiFetch('/incomes', { method: 'POST', body: JSON.stringify({ ...r, source: 'caja' }) }); setRegCaja(p => [n, ...p]); };
+  const editCaja = async (r) => { const u = await apiFetch(`/incomes/${r.id}`, { method: 'PATCH', body: JSON.stringify(r) }); setRegCaja(p => p.map(x => x.id === u.id ? u : x)); };
+  const delCaja  = async (id) => { await apiFetch(`/incomes/${id}`, { method: 'DELETE' }); setRegCaja(p => p.filter(r => r.id !== id)); };
 
   if (loading) return <div className="flex items-center justify-center h-full text-gray-400 text-sm">Cargando ingresos…</div>;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0 bg-white">
         <h2 className="text-base font-medium text-gray-900">Ingresos</h2>
       </div>
-
-      {/* Tabs */}
       <div className="flex border-b border-gray-100 bg-white flex-shrink-0">
         <button onClick={() => setTab("salon")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2
-            ${tab === "salon" ? "border-kr-rose text-kr-rose-dark" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
+          className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${tab === "salon" ? "border-kr-rose text-kr-rose-dark" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
           💅 Salón
         </button>
         <button onClick={() => setTab("caja")}
-          className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2
-            ${tab === "caja" ? "border-amber-400 text-amber-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
+          className={`flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${tab === "caja" ? "border-amber-400 text-amber-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}>
           🏧 Caja Vecina
         </button>
       </div>
-
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
         {tab === "salon"
-          ? <TabSalon   registros={regSalon} onAdd={addSalon}  onDelete={delSalon}  onEdit={editSalon} />
-          : <TabCajaVecina registros={regCaja} onAdd={addCaja} onDelete={delCaja}   onEdit={editCaja}  />
+          ? <TabSalon registros={regSalon} onAdd={addSalon} onDelete={delSalon} onEdit={editSalon} workers={workers} services={services} />
+          : <TabCajaVecina registros={regCaja} onAdd={addCaja} onDelete={delCaja} onEdit={editCaja} />
         }
       </div>
     </div>
