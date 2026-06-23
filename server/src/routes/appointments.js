@@ -29,6 +29,22 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
+// GET /appointments/today — citas de hoy
+router.get('/today', auth, async (req, res) => {
+  try {
+    const start = new Date(); start.setHours(0,0,0,0)
+    const end   = new Date(); end.setHours(23,59,59,999)
+    const appointments = await prisma.appointment.findMany({
+      where: { date: { gte: start, lte: end } },
+      include: { client: true, service: true, worker: true },
+      orderBy: { timeSlot: 'asc' },
+    })
+    res.json(appointments)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // GET /appointments/:id
 router.get('/:id', auth, async (req, res) => {
   try {
@@ -77,13 +93,11 @@ router.patch('/:id/status', auth, async (req, res) => {
       include: { client: true, service: true, worker: true },
     })
 
-    // Si se cancela → contar cancelaciones → blacklist
     if (status === 'cancelled') {
       const cancelCount = await prisma.appointment.count({ where: { clientId: appt.clientId, status: 'cancelled' } })
       if (cancelCount >= 5) await prisma.client.update({ where: { id: appt.clientId }, data: { tag: 'Blacklist' } })
     }
 
-    // Si se completa → tag VIP/Frecuente + ingreso automático
     if (status === 'completed') {
       const completedCount = await prisma.appointment.count({ where: { clientId: appt.clientId, status: 'completed' } })
       if (completedCount >= 5) {
