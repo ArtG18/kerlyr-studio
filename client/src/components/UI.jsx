@@ -70,9 +70,9 @@ export function SectionTitle({ children, className = '' }) {
 // ─── TopBar ───────────────────────────────────────────────────────────────────
 export function TopBar({ title, children }) {
   return (
-    <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0 bg-white">
-      <h2 className="text-base font-medium text-gray-900">{title}</h2>
-      <div className="flex items-center gap-2">{children}</div>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-5 py-3 sm:py-3.5 border-b border-gray-100 flex-shrink-0 bg-white">
+      <h2 className="text-base font-medium text-gray-900 truncate">{title}</h2>
+      {children && <div className="flex items-center gap-2 flex-wrap">{children}</div>}
     </div>
   )
 }

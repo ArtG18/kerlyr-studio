@@ -108,8 +108,8 @@ export default function Calendar() {
         </div>
       </TopBar>
 
-      <div className="flex-1 overflow-y-auto p-5">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Calendario */}
           <div>
@@ -148,7 +148,7 @@ export default function Calendar() {
             </div>
 
             {/* Leyenda */}
-            <div className="flex items-center gap-4 mt-3 px-1">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 px-1">
               <span className="flex items-center gap-1.5 text-xs text-gray-400">
                 <span className="w-2 h-2 rounded-full bg-kr-rose inline-block" /> Con citas
               </span>

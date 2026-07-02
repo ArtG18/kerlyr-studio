@@ -77,8 +77,8 @@ export default function Clients() {
             <i className="ti ti-arrow-left" /> Volver
           </button>
         </TopBar>
-        <div className="flex-1 overflow-y-auto p-5">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="card flex items-center gap-4">
                 <Avatar initials={initials} size="lg" />
@@ -185,9 +185,9 @@ export default function Clients() {
         <span className="text-xs text-gray-400">{clients.length} clientes</span>
       </TopBar>
 
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5">
         {/* Stats rápidas */}
-        <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           <div className="card text-center cursor-pointer hover:border-purple-200" onClick={() => setFilter('VIP')}>
             <p className="text-xl font-semibold text-purple-600">{vipCount}</p>
             <p className="text-[10px] text-gray-400">VIP</p>
@@ -207,17 +207,17 @@ export default function Clients() {
         </div>
 
         {/* Filtros y búsqueda */}
-        <div className="flex gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="flex items-center gap-2 flex-1 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
             <i className="ti ti-search text-gray-400" />
             <input type="text" placeholder="Buscar por nombre o teléfono..."
               className="flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder-gray-400"
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap">
             {['all','VIP','Frecuente','Regular','Nueva','Blacklist'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`text-xs px-3 py-2 rounded-xl border transition-all ${
+                className={`flex-shrink-0 text-xs px-3 py-2 rounded-xl border transition-all ${
                   filter === f ? 'bg-kr-rose-light text-kr-rose-dark border-kr-rose font-medium' : 'border-gray-200 text-gray-500 hover:border-gray-300'
                 }`}>
                 {f === 'all' ? 'Todas' : f}
@@ -240,12 +240,12 @@ export default function Clients() {
               const initials = c.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
               return (
                 <button key={c.id} onClick={() => setSelected(c)}
-                  className={`w-full card flex items-center gap-3 text-left hover:shadow-md transition-all
+                  className={`w-full card flex flex-wrap sm:flex-nowrap items-center gap-3 text-left hover:shadow-md transition-all
                     ${c.tag === 'Blacklist' ? 'border-red-100 bg-red-50/30' : ''}
                     ${c.tag === 'VIP' ? 'border-purple-100' : ''}`}>
                   <Avatar initials={initials} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-[140px]">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-medium text-gray-900">{c.name}</p>
                       {c.tag === 'Blacklist' && <i className="ti ti-ban text-xs text-red-400" />}
                       {c.tag === 'VIP' && <i className="ti ti-crown text-xs text-purple-500" />}
@@ -262,7 +262,7 @@ export default function Clients() {
                     <p className="text-xs text-gray-400">gastado</p>
                   </div>
                   <Badge variant={TAG_VARIANT[c.tag] || 'rose'}>{c.tag}</Badge>
-                  <i className="ti ti-chevron-right text-gray-300 text-sm" />
+                  <i className="ti ti-chevron-right text-gray-300 text-sm hidden sm:inline" />
                 </button>
               )
             })}

@@ -72,9 +72,9 @@ export default function Dashboard() {
         </button>
       </TopBar>
 
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Citas hoy"    value={appointments.length} sub={loading ? '...' : 'Total del día'} />
           <StatCard label="Confirmadas"  value={confirmed}  sub="Listas"          subColor="text-emerald-600" />
           <StatCard label="Pendientes"   value={pending}    sub="Por confirmar"   subColor="text-amber-600" />
@@ -106,10 +106,10 @@ export default function Dashboard() {
                 const isLoading = actionId === appt.id
 
                 return (
-                  <div key={appt.id} className="card flex items-center gap-3 py-3">
+                  <div key={appt.id} className="card flex flex-wrap sm:flex-nowrap items-center gap-3 py-3">
                     <Avatar initials={initials} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-[140px]">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-sm font-medium text-gray-900 truncate">{appt.client?.name}</p>
                         {appt.client?.tag === 'VIP' && (
                           <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">VIP</span>
@@ -122,14 +122,14 @@ export default function Dashboard() {
                         {appt.service?.name} · {appt.worker?.name?.split(' ')[0]}
                       </p>
                     </div>
-                    <div className="text-right flex-shrink-0 mr-2">
+                    <div className="text-right flex-shrink-0 order-3 sm:order-none">
                       <p className="text-xs text-gray-400 mb-1">{appt.timeSlot}</p>
                       <p className="text-xs font-medium text-gray-600">${appt.service?.price?.toLocaleString('es-CL')}</p>
                     </div>
                     <Badge variant={st.variant}>{st.label}</Badge>
 
                     {/* Acciones */}
-                    <div className="flex items-center gap-1 ml-2">
+                    <div className="flex items-center gap-1 w-full sm:w-auto justify-end sm:justify-start sm:ml-2 order-4 sm:order-none">
                       {appt.status === 'pending' && (
                         <button
                           onClick={() => changeStatus(appt.id, 'confirmed')}
@@ -177,7 +177,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { icon: 'ti-calendar', label: 'Ver calendario', to: '/admin/calendar', color: 'bg-kr-rose-light text-kr-rose-dark' },
             { icon: 'ti-users',    label: 'Ver clientes',   to: '/admin/clients',  color: 'bg-emerald-50 text-emerald-700' },
